@@ -11,6 +11,7 @@ A universal clipboard synchronization bridge and testing suite for AI agents (Ge
 - `SKILL.md`: The main ABC skill definition.
 - `skills/`: Discrete, logic-only bridge implementations for other agent ecosystems.
   - `gemini-clipboard-bridge/`: Raw skill for downstream Gemini extensions.
+  - `antigravity-clipboard-bridge/`: Raw skill for Antigravity coding assistant.
   - `claude-clipboard-bridge/`: Placeholder for Claude MCP integration.
   - `copilot-clipboard-bridge/`: Placeholder for VS Code Copilot integration.
 - `commands/abc/`: CLI command definitions for the standalone extension.

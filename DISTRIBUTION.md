@@ -17,6 +17,7 @@ Each subfolder in `dist/` is optimized for a different integration path:
 | :--- | :--- | :--- | :--- |
 | `dist/agent-bridge-clipboard` | **Standalone** | Full Extension | Installable via `gemini extensions install` |
 | `dist/gemini-clipboard-bridge` | **Downstream** | Raw Skill + Scripts | Link into a custom Gemini extension |
+| `dist/antigravity-clipboard-bridge` | **Downstream** | Raw Skill + Scripts | Link into Antigravity skill directory |
 | `dist/claude-clipboard-bridge` | **Downstream** | MCP / Raw Logic | Link into a Claude MCP server |
 | `dist/copilot-clipboard-bridge`| **Downstream** | Plugin / Raw Logic | Link into a VS Code plugin |
 
