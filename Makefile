@@ -39,7 +39,11 @@ build: clean
 
 # --- Testing & Verification ---
 
-test: verify
+test: verify unit-test
+
+unit-test:
+	@echo "Running unit test suite..."
+	@bash ./tests/unit_tests.sh
 
 verify:
 	@if [ -z "$$CLIENT_OS" ] || [ -z "$$CLIENT_TERM" ]; then \
@@ -48,6 +52,7 @@ verify:
 		echo ""; \
 	fi
 	./tests/verify.sh
+
 
 headless:
 	./tests/verify.sh --headless --method=$(or $(METHOD),bridge)
