@@ -1,6 +1,6 @@
 {
   "name": "agent-bridge-clipboard",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "A hybrid clipboard skill for terminal-based agents, supporting SSH, WSL, and macOS via OSC 52.",
   "author": "Aaron Bronow",
   "skills": ["."],
