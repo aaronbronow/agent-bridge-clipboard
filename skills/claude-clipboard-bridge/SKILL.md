@@ -8,13 +8,13 @@ description: Copy any text to the clipboard over SSH, Tmux, WSL, Powershell
 When the user asks to copy text, code blocks, logs, or command output to their clipboard, follow these steps.
 
 ### Step 1: Execute the Staged Helper Script (Primary Method)
-To avoid sandbox/container prompt overhead and handle complex environmental configurations automatically, your **primary** and preferred action is to execute the centralized `./scripts/copy.sh` helper script.
+To avoid sandbox/container prompt overhead and handle complex environmental configurations automatically, your **primary** and preferred action is to execute the centralized `./scripts/copy_to_clipboard.sh` helper script.
 
 #### 1. Execute via Stdin (Recommended for Escape Safety)
 To prevent shell-parsing errors or escaping bugs with double quotes (`"`), single quotes (`'`), or backticks (`` ` ``), always stream the text to copy into the script's standard input (stdin), and capture stderr to read the transport status line:
 
 ```bash
-printf "%s" "YOUR_TEXT_TO_COPY" | ./scripts/copy.sh
+printf "%s" "YOUR_TEXT_TO_COPY" | ./scripts/copy_to_clipboard.sh
 ```
 
 On success, the script writes exactly one line to stderr in the form `Copied via <transport>`, for example:

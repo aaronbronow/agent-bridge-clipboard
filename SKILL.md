@@ -21,7 +21,7 @@ printf "%s" "YOUR_TEXT_HERE" | ~/.gemini/config/plugins/clipboard/skills/copy/co
 printf "%s" "YOUR_TEXT_HERE" | ~/.gemini/antigravity-cli/plugins/clipboard/skills/copy/copy_to_clipboard.sh
 
 # Cwd/development path
-printf "%s" "YOUR_TEXT_HERE" | ./scripts/copy.sh
+printf "%s" "YOUR_TEXT_HERE" | ./scripts/copy_to_clipboard.sh
 ```
 
 On success, the script writes exactly one line to stderr in the form `Copied via <transport>`, for example:

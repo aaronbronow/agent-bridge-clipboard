@@ -5,8 +5,8 @@ This repository serves as the **Upstream Hub** for universal clipboard synchroni
 
 ### Architectural Tiers
 1.  **Primary Extension (`agent-bridge-clipboard`)**: The root-level source. It is a fully self-contained Gemini CLI extension, including metadata, commands, and the universal transport logic.
-2.  **Discrete Agent Skills**: Located in `skills/`. These are "logic-only" sub-packages (Flattened `SKILL.md` + universal `copy.sh`). They are designed to be linked or vendored into downstream projects without carrying redundant extension metadata.
-3.  **Universal Transport (`scripts/copy.sh`)**: The single source of truth for all transport logic (OSC 52, SSH Bypass, WSL Fallbacks). It is shared by all tiers via the build process.
+2.  **Discrete Agent Skills**: Located in `skills/`. These are "logic-only" sub-packages (Flattened `SKILL.md` + universal `copy_to_clipboard.sh`). They are designed to be linked or vendored into downstream projects without carrying redundant extension metadata.
+3.  **Universal Transport (`scripts/copy_to_clipboard.sh`)**: The single source of truth for all transport logic (OSC 52, SSH Bypass, WSL Fallbacks). It is shared by all tiers via the build process.
 
 ## Strategic Learnings & Intent
 The current architecture is the result of several key learnings:
@@ -15,8 +15,8 @@ The current architecture is the result of several key learnings:
 - **Hybrid Distribution Philosophy**:
     - **End Users**: Get a clean, installable extension in `dist/agent-bridge-clipboard/`.
     - **Downstream Developers**: Get modular, logic-only skills in `dist/*-clipboard-bridge/` that they can link into their own manifests.
-- **Universal Logic**: Centralizing `copy.sh` at the root ensures that bug fixes and transport improvements propagate to all agent bridges (Gemini, Claude, Copilot) simultaneously.
-- **Portable Relative Paths**: All commands and manifests use `./scripts/copy.sh`. This path is stable across source, standalone installation, and downstream linking.
+- **Universal Logic**: Centralizing `copy_to_clipboard.sh` at the root ensures that bug fixes and transport improvements propagate to all agent bridges (Gemini, Claude, Copilot) simultaneously.
+- **Portable Relative Paths**: All commands and manifests use `./scripts/copy_to_clipboard.sh`. This path is stable across source, standalone installation, and downstream linking.
 
 ## Clipboard Testing Protocol
 The verification process for the `tests/COMPATIBILITY.md` matrix is handled **strictly** by the `tests/verify.sh` script.

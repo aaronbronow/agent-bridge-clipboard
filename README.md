@@ -7,7 +7,7 @@ A universal clipboard synchronization bridge and testing suite for AI agents (Ge
 - **Standalone Extension**: This repository also serves as the primary source for the `agent-bridge-clipboard` Gemini CLI extension.
 
 ## Project Structure
-- `scripts/`: Core transport logic (`copy.sh`) for the main ABC extension.
+- `scripts/`: Core transport logic (`copy_to_clipboard.sh`) for the main ABC extension.
 - `SKILL.md`: The main ABC skill definition.
 - `skills/`: Discrete, logic-only bridge implementations for other agent ecosystems.
   - `gemini-clipboard-bridge/`: Raw skill for downstream Gemini extensions.
@@ -16,8 +16,8 @@ A universal clipboard synchronization bridge and testing suite for AI agents (Ge
 - `commands/abc/`: CLI command definitions for the standalone extension.
 - `tests/`: Compatibility matrix and verification scripts.
 
-## Core Logic: `copy.sh`
-The heart of the project is the `scripts/copy.sh` bridge. It prioritizes transport methods based on environment detection:
+## Core Logic: `copy_to_clipboard.sh`
+The heart of the project is the `scripts/copy_to_clipboard.sh` bridge. It prioritizes transport methods based on environment detection:
 1. **Sandbox Detection**: Identifies if running in a Docker/Container environment.
 2. **Native**: `clip.exe` (WSL) or `pbcopy` (macOS).
 3. **SSH TTY Bypass**: Writes to `$SSH_TTY` for remote background reliability.

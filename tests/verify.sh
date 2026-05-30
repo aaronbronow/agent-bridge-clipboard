@@ -81,7 +81,7 @@ get_method_cmd() {
         wsl-powershell)   echo "echo -n '${token}' | powershell.exe -Command Set-Clipboard" ;;
         bypass-file)      echo "printf '\e]52;c;${b64_token}\a' > .clipboard_bypass" ;;
         bypass-pipe)      echo "printf '\e]52;c;${b64_token}\a' > .clipboard_pipe" ;;
-        bridge)           echo "scripts/copy.sh '${token}'" ;;
+        bridge)           echo "scripts/copy_to_clipboard.sh '${token}'" ;;
         *)                return 1 ;;
     esac
 }
@@ -278,9 +278,9 @@ if [ -p ".clipboard_pipe" ]; then
     test_copy "Bypass" "Named Pipe (.clipboard_pipe)" "printf '\e]52;c;dGVzdC1waXBlLWJ5cGFzcw==\a' > .clipboard_pipe" "test-pipe-bypass"
 fi
 
-BRIDGE_SCRIPT="scripts/copy.sh"
+BRIDGE_SCRIPT="scripts/copy_to_clipboard.sh"
 if [ -f "$BRIDGE_SCRIPT" ]; then
-    test_copy "Bridge" "copy.sh wrapper" "$BRIDGE_SCRIPT 'test-bridge-script'" "test-bridge-script"
+    test_copy "Bridge" "copy_to_clipboard.sh wrapper" "$BRIDGE_SCRIPT 'test-bridge-script'" "test-bridge-script"
 fi
 
 echo "-----------------------------------"

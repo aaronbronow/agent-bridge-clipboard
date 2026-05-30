@@ -53,14 +53,14 @@ For stable, versioned production usage, download the release asset during your b
 ### 3. Manual Integration (Simplest)
 If you just want the script and the "brain" (SKILL.md), you can copy the files directly.
 
-1. Copy `dist/<agent>-clipboard-bridge/scripts/copy.sh` to your scripts folder.
+1. Copy `dist/<agent>-clipboard-bridge/scripts/copy_to_clipboard.sh` to your scripts folder.
 2. Copy `dist/<agent>-clipboard-bridge/SKILL.md` to your skills folder.
 3. Update your agent's system prompt or tool configuration to use these files.
 
 ---
 
 ## Path Normalization Rules
-The `copy.sh` script is designed to be portable. It uses environment detection and fallback channels that work regardless of where the script is located on the filesystem, provided it has execute permissions.
+The `copy_to_clipboard.sh` script is designed to be portable. It uses environment detection and fallback channels that work regardless of where the script is located on the filesystem, provided it has execute permissions.
 
 When importing into a Gemini extension, ensure your `gemini-extension.json` correctly maps the skill paths.
 

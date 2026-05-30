@@ -1,12 +1,12 @@
 #!/bin/bash
 # Test suite for agent-bridge-clipboard
-# Tests copy.sh across SSH, bypass, tmux, debug, and manifest paths.
+# Tests copy_to_clipboard.sh across SSH, bypass, tmux, debug, and manifest paths.
 
 set -uo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 PLUGIN_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
-SCRIPT="$PLUGIN_DIR/scripts/copy.sh"
+SCRIPT="$PLUGIN_DIR/scripts/copy_to_clipboard.sh"
 
 PASS=0
 FAIL=0
@@ -38,9 +38,9 @@ section "A" "Script presence and permissions"
 # ============================================================
 
 if [ -x "$SCRIPT" ]; then
-    pass "copy.sh exists and is executable"
+    pass "copy_to_clipboard.sh exists and is executable"
 else
-    fail "copy.sh not found or not executable at: $SCRIPT"
+    fail "copy_to_clipboard.sh not found or not executable at: $SCRIPT"
 fi
 
 # ============================================================

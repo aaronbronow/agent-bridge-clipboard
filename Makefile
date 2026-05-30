@@ -21,8 +21,8 @@ build: clean
 	mkdir -p $(DIST_DIR)/agent-bridge-clipboard/scripts
 	mkdir -p $(DIST_DIR)/agent-bridge-clipboard/commands/abc
 	cp SKILL.md $(DIST_DIR)/agent-bridge-clipboard/
-	cp scripts/copy.sh $(DIST_DIR)/agent-bridge-clipboard/scripts/
-	chmod +x $(DIST_DIR)/agent-bridge-clipboard/scripts/copy.sh
+	cp scripts/copy_to_clipboard.sh $(DIST_DIR)/agent-bridge-clipboard/scripts/
+	chmod +x $(DIST_DIR)/agent-bridge-clipboard/scripts/copy_to_clipboard.sh
 	cp commands/abc/*.toml $(DIST_DIR)/agent-bridge-clipboard/commands/abc/
 	cp gemini-extension.json $(DIST_DIR)/agent-bridge-clipboard/
 	cp LICENSE $(DIST_DIR)/agent-bridge-clipboard/
@@ -33,8 +33,8 @@ build: clean
 		echo "Preparing $$skill..."; \
 		mkdir -p $(DIST_DIR)/$$skill/scripts; \
 		if [ -f skills/$$skill/SKILL.md ]; then cp skills/$$skill/SKILL.md $(DIST_DIR)/$$skill/; fi; \
-		cp scripts/copy.sh $(DIST_DIR)/$$skill/scripts/; \
-		chmod +x $(DIST_DIR)/$$skill/scripts/copy.sh; \
+		cp scripts/copy_to_clipboard.sh $(DIST_DIR)/$$skill/scripts/; \
+		chmod +x $(DIST_DIR)/$$skill/scripts/copy_to_clipboard.sh; \
 	done
 
 # --- Testing & Verification ---
@@ -84,8 +84,8 @@ TARGET_SKILL ?= agent-bridge-clipboard
 deploy-sandbox:
 	@echo "Deploying $(TARGET_SKILL) to local sandbox: $(SANDBOX_DIR)..."
 	mkdir -p $(SANDBOX_DIR)/scripts
-	cp scripts/copy.sh $(SANDBOX_DIR)/scripts/
-	chmod +x $(SANDBOX_DIR)/scripts/copy.sh
+	cp scripts/copy_to_clipboard.sh $(SANDBOX_DIR)/scripts/
+	chmod +x $(SANDBOX_DIR)/scripts/copy_to_clipboard.sh
 	@if [ "$(TARGET_SKILL)" = "agent-bridge-clipboard" ]; then \
 		cp SKILL.md $(SANDBOX_DIR)/; \
 		mkdir -p $(SANDBOX_DIR)/commands/abc; \
