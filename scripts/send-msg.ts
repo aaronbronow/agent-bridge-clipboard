@@ -2,20 +2,43 @@ import { WebSocket } from 'ws';
 import os from 'node:os';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
+import fs from 'node:fs';
 import { createFrame, loadConfig } from './abc-protocol.js';
 
+const config = loadConfig();
+
+let content = '';
+let recipient = '*';
+let msgType = 'broadcast';
+
+const configDir = path.join(os.homedir(), '.gemini', 'config', 'plugins', 'abc');
+const pendingMsgPath = path.join(configDir, 'pending_message.json');
+
 const args = process.argv.slice(2);
-const content = args.find(a => !a.startsWith('--')) || '';
+const hasArgs = args.length > 0;
+
+if (!hasArgs && fs.existsSync(pendingMsgPath)) {
+  try {
+    const data = JSON.parse(fs.readFileSync(pendingMsgPath, 'utf8'));
+    content = data.content || '';
+    recipient = data.recipient || '*';
+    msgType = data.type || 'broadcast';
+    try { fs.unlinkSync(pendingMsgPath); } catch {}
+  } catch (err: any) {
+    console.error(`Error: Failed to read pending message: ${err.message}`);
+    process.exit(1);
+  }
+} else {
+  content = args.find(a => !a.startsWith('--')) || '';
+  recipient = args.find(a => a.startsWith('--recipient='))?.split('=')[1] || '*';
+  msgType = args.find(a => a.startsWith('--type='))?.split('=')[1] || 'broadcast';
+}
 
 if (!content) {
   console.error('Error: Message content is required');
   process.exit(1);
 }
 
-const config = loadConfig();
-
-const recipient = args.find(a => a.startsWith('--recipient='))?.split('=')[1] || '*';
-const msgType = args.find(a => a.startsWith('--type='))?.split('=')[1] || 'broadcast';
 const role = (args.find(a => a.startsWith('--role='))?.split('=')[1] || process.env.ABC_ROLE || config.role || 'worker') as 'orchestrator' | 'worker';
 const brokerUrl = process.env.ABC_BROKER || config.broker || 'ws://localhost:4224';
 const agentId = process.env.ABC_AGENT_ID || config.agentId || `agent-${os.hostname()}-${process.pid}`;

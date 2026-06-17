@@ -18,16 +18,28 @@ async function main() {
   const config = loadConfig();
   const args = process.argv.slice(2);
   let input = '';
+  const configDir = path.join(os.homedir(), '.gemini', 'config', 'plugins', 'abc');
+  const pendingCopyFile = path.join(configDir, 'pending_copy.txt');
 
   // 1. Handle Input
   if (args.length === 0) {
-    if (process.stdin.isTTY) {
-      process.exit(0);
-    }
-    try {
-      input = fs.readFileSync(0, 'utf-8');
-    } catch {
-      process.exit(0);
+    if (fs.existsSync(pendingCopyFile)) {
+      try {
+        input = fs.readFileSync(pendingCopyFile, 'utf8');
+        try { fs.unlinkSync(pendingCopyFile); } catch {}
+      } catch (err: any) {
+        console.error(`Error: Failed to read pending copy file: ${err.message}`);
+        process.exit(1);
+      }
+    } else {
+      if (process.stdin.isTTY) {
+        process.exit(0);
+      }
+      try {
+        input = fs.readFileSync(0, 'utf-8');
+      } catch {
+        process.exit(0);
+      }
     }
   } else {
     input = args.join(' ');

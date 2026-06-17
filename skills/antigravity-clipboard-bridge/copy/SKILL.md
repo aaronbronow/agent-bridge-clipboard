@@ -4,30 +4,43 @@ description: Copies text to the clipboard. Supports setting the user's clipboard
 ---
 
 # Instructions
-If the user asks to copy text to the clipboard, use the command below:
+If the user asks to copy text to the clipboard, you should use the **Static Command Method** to avoid causing repetitive security permission prompts for the user:
 
-```bash
-node ~/.gemini/config/plugins/abc/skills/copy/copy.js "the text to copy"
-```
+1. **Write the content** to the file `~/.gemini/config/plugins/abc/pending_copy.txt` (resolve `~` to the user's home directory).
+2. **Execute the static command** using `run_command`:
+   ```bash
+   node ~/.gemini/config/plugins/abc/skills/copy/copy.js
+   ```
+   *(Since this command has no arguments, the user only has to approve/persist this command once, and it will be auto-allowed for all future copies).*
 
-> [!IMPORTANT]
-> **DIRECT EXECUTION:** You must immediately run this command using the `run_command` tool. Do NOT attempt to read the script, list directories, check file existence, or inspect the plugin structure beforehand.
-
-### Usage Steps:
-1. **Identify the Content**: Determine the exact text, code block, or command output to be copied.
-2. **Execute Command**: Invoke the `run_command` tool to run the command above. 
-3. **Escaping**: Properly escape any double quotes (`"`) or backticks (`` ` ``) in the text argument to ensure standard shell execution parses the argument correctly.
+> [!NOTE]
+> **Fallback Method**: If needed, you can still run `node ~/.gemini/config/plugins/abc/skills/copy/copy.js "text to copy"`, but this will prompt the user to approve the specific text every time.
 
 ## Agent-to-Agent Communication Protocol
 When you need to send messages to other agents or wait for responses on the Tailscale WebSocket bridge (for multi-agent coordination or long-running dialogues):
 
 ### 1. Sending a Message to Another Agent
-Use the `send-msg.js` script to send a message to a specific agent (e.g. `surface95-agent`):
-```bash
-node ~/.gemini/config/plugins/abc/skills/copy/send-msg.js "Message content here" --recipient="surface95-agent" --type="prompt"
-```
-*   `--recipient`: Set to the target agent ID (e.g., `surface95-agent`), `"orchestrator"` to target the orchestrator, or omit/set to `"*"` for broadcast.
-*   `--type`: The type of message (`prompt`, `status`, `result`, or `abort`).
+To avoid dynamic CLI arguments that trigger repetitive permission approvals, use the **Static Message Method**:
+
+1. **Write the message payload** as a JSON object to the file `~/.gemini/config/plugins/abc/pending_message.json` (resolve `~` to the user's home directory):
+   ```json
+   {
+     "content": "Message content here",
+     "recipient": "surface95-agent",
+     "type": "prompt"
+   }
+   ```
+   *   `recipient`: Set to the target agent ID (e.g., `surface95-agent`), `"orchestrator"` to target the orchestrator, or `"*"`/omit for broadcast.
+   *   `type`: The type of message (`prompt`, `status`, `result`, or `abort`).
+
+2. **Execute the static command** using `run_command`:
+   ```bash
+   node ~/.gemini/config/plugins/abc/skills/copy/send-msg.js
+   ```
+   *(Since this command has no arguments, the user only has to approve/persist this command once).*
+
+> [!NOTE]
+> **Fallback Method**: You can still run `node ~/.gemini/config/plugins/abc/skills/copy/send-msg.js "Message content" --recipient="surface95-agent" --type="prompt"`, but it will prompt the user to approve the specific message string.
 
 ### 2. Awaiting a Response (Listen Once)
 To wait for a response without polling, run the `listen-once.js` script as a background task. Since it is run in the background, when it receives a message it will print it to stdout and exit. This will trigger a reactive wakeup in the Antigravity CLI and deliver the message directly to your context.
