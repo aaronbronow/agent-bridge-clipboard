@@ -8,8 +8,8 @@
     "agent-bridge-clipboard-install": "./dist/scripts/install-cli.js"
   },
   "scripts": {
-    "build": "tsc && make build",
-    "prepare": "tsc && make build",
+    "build": "tsc && node dist/scripts/build.js",
+    "prepare": "tsc && node dist/scripts/build.js",
     "start:broker": "tsx scripts/broker.ts",
     "start:client": "tsx scripts/client.ts",
     "test": "npx tsc && node --test dist/tests/websocket-sync.test.js",

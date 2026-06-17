@@ -16,45 +16,7 @@ clean:
 build: clean
 	@echo "Compiling TypeScript..."
 	npx tsc
-	@echo "Building release v$(VERSION)..."
-	
-	# 1. Build the main agent-bridge-clipboard from root
-	@echo "Preparing agent-bridge-clipboard..."
-	mkdir -p $(DIST_DIR)/agent-bridge-clipboard/scripts
-	mkdir -p $(DIST_DIR)/agent-bridge-clipboard/commands/abc
-	cp SKILL.md $(DIST_DIR)/agent-bridge-clipboard/
-	cp scripts/copy.sh $(DIST_DIR)/agent-bridge-clipboard/scripts/
-	chmod +x $(DIST_DIR)/agent-bridge-clipboard/scripts/copy.sh
-	cp dist/scripts/*.js $(DIST_DIR)/agent-bridge-clipboard/scripts/
-	cp package.json $(DIST_DIR)/agent-bridge-clipboard/
-	cp commands/abc/*.toml $(DIST_DIR)/agent-bridge-clipboard/commands/abc/
-	cp gemini-extension.json $(DIST_DIR)/agent-bridge-clipboard/
-	cp LICENSE $(DIST_DIR)/agent-bridge-clipboard/
-	cp GEMINI.md $(DIST_DIR)/agent-bridge-clipboard/
-
-	# 2. Build the other discrete bridges from skills/
-	@for skill in $(SKILLS); do \
-		echo "Preparing $$skill..."; \
-		mkdir -p $(DIST_DIR)/$$skill/scripts; \
-		if [ -f skills/$$skill/SKILL.md ]; then cp skills/$$skill/SKILL.md $(DIST_DIR)/$$skill/; fi; \
-		cp scripts/copy.sh $(DIST_DIR)/$$skill/scripts/; \
-		chmod +x $(DIST_DIR)/$$skill/scripts/copy.sh; \
-		cp dist/scripts/abc-protocol.js $(DIST_DIR)/$$skill/scripts/; \
-		cp dist/scripts/send-clip.js $(DIST_DIR)/$$skill/scripts/; \
-	done
-
-	# 3. Build the Antigravity-specific plugin structure
-	@echo "Preparing antigravity-clipboard-bridge..."
-	mkdir -p $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy
-	cp skills/antigravity-clipboard-bridge/copy/SKILL.md $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
-	cp skills/antigravity-clipboard-bridge/INSTRUCTIONS.md $(DIST_DIR)/antigravity-clipboard-bridge/
-	cp skills/antigravity-clipboard-bridge/plugin.json $(DIST_DIR)/antigravity-clipboard-bridge/
-	cp scripts/copy.sh $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
-	chmod +x $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/copy.sh
-	cp dist/scripts/abc-protocol.js $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
-	cp dist/scripts/send-clip.js $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
-	cp dist/scripts/send-msg.js $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
-	cp dist/scripts/listen-once.js $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
+	node dist/scripts/build.js
 
 # --- Testing & Verification ---
 
