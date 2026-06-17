@@ -4,8 +4,12 @@
   "description": "A hybrid clipboard skill for terminal-based agents, supporting SSH, WSL, and macOS via OSC 52.",
   "main": "dist/index.js",
   "type": "module",
+  "bin": {
+    "agent-bridge-clipboard-install": "./dist/scripts/install-cli.js"
+  },
   "scripts": {
     "build": "tsc && make build",
+    "prepare": "tsc && make build",
     "start:broker": "tsx scripts/broker.ts",
     "start:client": "tsx scripts/client.ts",
     "test": "npx tsc && node --test dist/tests/websocket-sync.test.js",
