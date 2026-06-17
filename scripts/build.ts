@@ -107,5 +107,15 @@ copyFile(path.join(distDir, 'scripts', 'send-clip.js'), path.join(agDist, 'skill
 copyFile(path.join(distDir, 'scripts', 'send-msg.js'), path.join(agDist, 'skills', 'copy', 'send-msg.js'));
 copyFile(path.join(distDir, 'scripts', 'listen-once.js'), path.join(agDist, 'skills', 'copy', 'listen-once.js'));
 copyFile(path.join(distDir, 'scripts', 'client.js'), path.join(agDist, 'skills', 'copy', 'client.js'));
+copyFile(path.join(distDir, 'scripts', 'accept.js'), path.join(agDist, 'skills', 'copy', 'accept.js'));
+
+// Copy Antigravity-specific commands
+const agCommandsSrc = path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'commands', 'abc');
+if (fs.existsSync(agCommandsSrc)) {
+  const files = fs.readdirSync(agCommandsSrc);
+  for (const file of files) {
+    copyFile(path.join(agCommandsSrc, file), path.join(agDist, 'commands', 'abc', file));
+  }
+}
 
 console.log('Build completed successfully!');
