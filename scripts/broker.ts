@@ -295,11 +295,19 @@ function handleAgentRouting(session: ClientSession, frame: ABCFrame) {
   } else {
     // Route to specific agent ID
     const target = Array.from(activeSessions.values()).find(
-      s => s.bridgeName === session.bridgeName && s.context.agent_id === recipient
+      s => {
+        if (s.bridgeName !== session.bridgeName) return false;
+        if (recipient.includes('@')) {
+          const [targetId, targetHost] = recipient.split('@');
+          return s.context.agent_id === targetId && s.verifiedHost === targetHost;
+        }
+        return s.context.agent_id === recipient;
+      }
     );
     if (target) {
       target.socket.send(JSON.stringify(frame));
     } else {
+      console.warn(`[Routing Failed] Target agent "${recipient}" not found on Bridge "${session.bridgeName}"`);
       sendSystemMessage(session.socket, 'error', `Target agent "${recipient}" not found on this bridge`);
     }
   }
