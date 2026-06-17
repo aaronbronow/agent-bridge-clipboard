@@ -7,7 +7,7 @@ description: Copies text to the clipboard. Supports setting the user's clipboard
 If the user asks to copy text to the clipboard, use the command below:
 
 ```bash
-~/.gemini/antigravity-cli/plugins/clipboard/skills/copy/copy.sh "the text to copy"
+~/.gemini/antigravity-cli/plugins/abc/skills/copy/copy.sh "the text to copy"
 ```
 
 ### Usage Steps:
@@ -21,7 +21,7 @@ When you need to send messages to other agents or wait for responses on the Tail
 ### 1. Sending a Message to Another Agent
 Use the `send-msg.js` script to send a message to a specific agent (e.g. `surface95-agent`):
 ```bash
-node ~/.gemini/antigravity-cli/plugins/clipboard/skills/copy/send-msg.js "Message content here" --recipient="surface95-agent" --type="prompt"
+node ~/.gemini/antigravity-cli/plugins/abc/skills/copy/send-msg.js "Message content here" --recipient="surface95-agent" --type="prompt"
 ```
 *   `--recipient`: Set to the target agent ID (e.g., `surface95-agent`), `"orchestrator"` to target the orchestrator, or omit/set to `"*"` for broadcast.
 *   `--type`: The type of message (`prompt`, `status`, `result`, or `abort`).
@@ -32,7 +32,7 @@ To wait for a response without polling, run the `listen-once.js` script as a bac
 **Always run the listen command immediately after sending a message if you are waiting for a response:**
 ```bash
 # Start the listener in the background
-node ~/.gemini/antigravity-cli/plugins/clipboard/skills/copy/listen-once.js --agent-id="YOUR_AGENT_ID" --type="prompt"
+node ~/.gemini/antigravity-cli/plugins/abc/skills/copy/listen-once.js --agent-id="YOUR_AGENT_ID" --type="prompt"
 ```
 *   `--agent-id`: Your unique agent ID (to identify yourself to the broker and match the recipient field of incoming messages).
 *   `--type`: (Optional) filter to only wake up for a specific message type.

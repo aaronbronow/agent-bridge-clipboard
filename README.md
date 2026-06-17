@@ -70,8 +70,8 @@ This project uses a hybrid distribution model to support both end-users and down
 
 ### Local Plugin Installation
 To install or link the plugin for the Antigravity CLI (`agy`):
-* **Production Install**: `npm run install:plugin` (copies built files to `~/.gemini/config/plugins/clipboard`)
-* **Development Link**: `npm run dev-install:plugin` (creates a symlink from `~/.gemini/config/plugins/clipboard` to the local build output for instant updates)
+* **Production Install**: `npm run install:plugin` (copies built files to `~/.gemini/config/plugins/abc`)
+* **Development Link**: `npm run dev-install:plugin` (creates a symlink from `~/.gemini/config/plugins/abc` to the local build output for instant updates)
 
 ### Local Development & Testing
 To test specific bridges in an isolated environment:

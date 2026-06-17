@@ -121,15 +121,15 @@ deploy-sandbox:
 
 # Local installation targets for Antigravity CLI
 install: build
-	@echo "Installing plugin to ~/.gemini/config/plugins/clipboard..."
+	@echo "Installing plugin to ~/.gemini/config/plugins/abc..."
 	mkdir -p ~/.gemini/config/plugins
-	rm -rf ~/.gemini/config/plugins/clipboard
-	cp -r $(DIST_DIR)/antigravity-clipboard-bridge ~/.gemini/config/plugins/clipboard
+	rm -rf ~/.gemini/config/plugins/abc
+	cp -r $(DIST_DIR)/antigravity-clipboard-bridge ~/.gemini/config/plugins/abc
 	@echo "Plugin installed successfully!"
 
 dev-install: build
-	@echo "Symlinking plugin to ~/.gemini/config/plugins/clipboard..."
+	@echo "Symlinking plugin to ~/.gemini/config/plugins/abc..."
 	mkdir -p ~/.gemini/config/plugins
-	rm -rf ~/.gemini/config/plugins/clipboard
-	ln -s $(realpath $(DIST_DIR)/antigravity-clipboard-bridge) ~/.gemini/config/plugins/clipboard
+	rm -rf ~/.gemini/config/plugins/abc
+	ln -s $(realpath $(DIST_DIR)/antigravity-clipboard-bridge) ~/.gemini/config/plugins/abc
 	@echo "Plugin symlinked successfully for development!"
