@@ -7,7 +7,12 @@ A universal clipboard synchronization bridge and testing suite for AI agents (Ge
 - **Standalone Extension**: This repository also serves as the primary source for the `agent-bridge-clipboard` Gemini CLI extension.
 
 ## Project Structure
-- `scripts/`: Core transport logic (`copy.sh`) for the main ABC extension.
+- `scripts/`: Core transport and network synchronization logic.
+  - `copy.sh`: Core shell script resolving local copy transports.
+  - `broker.ts`: WebSocket broker server resolving client identities via Tailscale.
+  - `client.ts`: Persistent background synchronization client.
+  - `listen-once.ts`: One-shot background listener for agent-to-agent messaging.
+  - `send-msg.ts`: Targeted sender for agent-to-agent messaging.
 - `SKILL.md`: The main ABC skill definition.
 - `skills/`: Discrete, logic-only bridge implementations for other agent ecosystems.
   - `gemini-clipboard-bridge/`: Raw skill for downstream Gemini extensions.
@@ -15,15 +20,45 @@ A universal clipboard synchronization bridge and testing suite for AI agents (Ge
   - `claude-clipboard-bridge/`: Placeholder for Claude MCP integration.
   - `copilot-clipboard-bridge/`: Placeholder for VS Code Copilot integration.
 - `commands/abc/`: CLI command definitions for the standalone extension.
-- `tests/`: Compatibility matrix and verification scripts.
+- `tests/`: Compatibility matrix, unit tests, and verification scripts.
 
 ## Core Logic: `copy.sh`
 The heart of the project is the `scripts/copy.sh` bridge. It prioritizes transport methods based on environment detection:
-1. **Sandbox Detection**: Identifies if running in a Docker/Container environment.
-2. **Native**: `clip.exe` (WSL) or `pbcopy` (macOS).
-3. **SSH TTY Bypass**: Writes to `$SSH_TTY` for remote background reliability.
-4. **Bypass**: File-based signaling via `.clipboard_bypass` (Mandatory for Docker sandboxes).
-5. **Transport**: Direct OSC 52 escape sequences to `/dev/tty` or `stdout`.
+1. **Bypass Check**: Evaluates if `send-clip.js` is present. If found (and `ABC_DISABLE_SYNC` is not `1`), publishes the copy to the WebSocket broker.
+2. **Sandbox Detection**: Identifies if running in a Docker/Container environment.
+3. **Native**: `clip.exe` (WSL) or `pbcopy` (macOS).
+4. **SSH TTY Bypass**: Writes to `$SSH_TTY` for remote background reliability.
+5. **Bypass**: File-based signaling via `.clipboard_bypass` (Mandatory for Docker sandboxes).
+6. **Transport**: Direct OSC 52 escape sequences to `/dev/tty` or `stdout`.
+
+## WebSocket Sync & Agent-to-Agent Messaging (ABC Protocol)
+The Agent Bridge Clipboard includes a WebSocket-based sync protocol ("ABC Protocol") designed to securely synchronize clipboard states and coordinate message payloads across multiple connected agents (e.g., Windows/WSL, Linux/tmux, and Orchestrator instances) over a secure network (such as Tailscale).
+
+### Running the Broker Server (Docker)
+The broker runs as a containerized service. It leverages the local Tailscale socket to securely identify connected clients and enforces a single-orchestrator limit per bridge.
+
+1. **Build the image**:
+   ```bash
+   docker build --network=host -t abc-broker -f Dockerfile .
+   ```
+2. **Run the container**:
+   ```bash
+   docker run -d --name abc-broker --restart unless-stopped --network host -v /var/run/tailscale/tailscaled.sock:/var/run/tailscale/tailscaled.sock abc-broker
+   ```
+
+### Client Sync & Agent-to-Agent Messaging
+- **Background Client**: Run `npm run start:client -- --role=worker` (or `--role=orchestrator`) to start a persistent client that automatically syncs the clipboard in the background. Caches updates to `.bridge_clipboard_cache` and triggers a terminal bell/tmux alert when the clipboard changes.
+- **Send Message**: Send targeted prompt/status frames to another agent:
+   ```bash
+   node ./scripts/send-msg.js "My message content" --recipient="surface95-agent" --type="prompt"
+   ```
+- **Listen Once**: To receive a response without polling, run the one-shot listener as a background task. It will exit immediately upon receiving the message, triggering a native reactive wakeup in the Antigravity/Gemini CLI:
+   ```bash
+   node ./scripts/listen-once.js --agent-id="my-agent-id" --type="prompt"
+   ```
+
+### Disabling Network Sync
+To temporarily run `copy.sh` locally without background WebSocket publishing, set `ABC_DISABLE_SYNC=1` in your environment.
 
 ## Distribution Model
 This project uses a hybrid distribution model to support both end-users and downstream developers. See [DISTRIBUTION.md](DISTRIBUTION.md) for detailed integration guides.
@@ -32,6 +67,11 @@ This project uses a hybrid distribution model to support both end-users and down
 - **Raw Skills**: `dist/*-clipboard-bridge/` (Flattened, logic-only packages).
 
 ## Developer Workflow
+
+### Local Plugin Installation
+To install or link the plugin for the Antigravity CLI (`agy`):
+* **Production Install**: `npm run install:plugin` (copies built files to `~/.gemini/config/plugins/clipboard`)
+* **Development Link**: `npm run dev-install:plugin` (creates a symlink from `~/.gemini/config/plugins/clipboard` to the local build output for instant updates)
 
 ### Local Development & Testing
 To test specific bridges in an isolated environment:
