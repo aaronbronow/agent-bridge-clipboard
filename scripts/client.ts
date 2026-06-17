@@ -237,6 +237,22 @@ function applyRemoteClipboard(text: string, hash: string, fromAgent?: string, fr
       console.log(`\n\x1b[35m[Bridge Update]\x1b[0m Initial bridge clipboard seeded.`);
     }
     console.log(`               Run 'abc accept' or './scripts/copy.sh --accept' to apply it to your clipboard.\n`);
+
+    // Safe terminal bell alert
+    try {
+      process.stdout.write('\x07');
+    } catch {}
+
+    // Safe tmux status line warning
+    if (process.env.TMUX && fromAgent && fromHost) {
+      try {
+        spawnSync('tmux', [
+          'display-message',
+          '-d', '4000',
+          `Bridge Clipboard Updated by ${fromAgent}@${fromHost}! Run 'abc accept' to apply.`
+        ], { stdio: 'ignore' });
+      } catch {}
+    }
   } catch (err: any) {
     console.error(`[Error] Failed to write bridge clipboard cache: ${err.message}`);
   }

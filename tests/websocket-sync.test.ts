@@ -36,7 +36,7 @@ test('ABC Protocol Helpers', () => {
 test('E2E Broker and Client Sync Syncing', async (t) => {
   // 1. Spawn Broker on test port
   console.log('Spawning Broker for integration testing...');
-  const brokerProcess = fork('./dist/broker.js', [], {
+  const brokerProcess = fork('./dist/scripts/broker.js', [], {
     env: { ...process.env, ABC_PORT: TEST_PORT.toString() }
   });
 
