@@ -118,3 +118,18 @@ deploy-sandbox:
 		cp skills/$(TARGET_SKILL)/SKILL.md $(SANDBOX_DIR)/; \
 	fi
 	@echo "Deployment complete. You can now run 'gemini --sandbox' in $(SANDBOX_DIR)"
+
+# Local installation targets for Antigravity CLI
+install: build
+	@echo "Installing plugin to ~/.gemini/config/plugins/clipboard..."
+	mkdir -p ~/.gemini/config/plugins
+	rm -rf ~/.gemini/config/plugins/clipboard
+	cp -r $(DIST_DIR)/antigravity-clipboard-bridge ~/.gemini/config/plugins/clipboard
+	@echo "Plugin installed successfully!"
+
+dev-install: build
+	@echo "Symlinking plugin to ~/.gemini/config/plugins/clipboard..."
+	mkdir -p ~/.gemini/config/plugins
+	rm -rf ~/.gemini/config/plugins/clipboard
+	ln -s $(realpath $(DIST_DIR)/antigravity-clipboard-bridge) ~/.gemini/config/plugins/clipboard
+	@echo "Plugin symlinked successfully for development!"
