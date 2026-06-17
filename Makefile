@@ -25,7 +25,7 @@ build: clean
 	cp SKILL.md $(DIST_DIR)/agent-bridge-clipboard/
 	cp scripts/copy.sh $(DIST_DIR)/agent-bridge-clipboard/scripts/
 	chmod +x $(DIST_DIR)/agent-bridge-clipboard/scripts/copy.sh
-	cp dist/*.js $(DIST_DIR)/agent-bridge-clipboard/scripts/
+	cp dist/scripts/*.js $(DIST_DIR)/agent-bridge-clipboard/scripts/
 	cp package.json $(DIST_DIR)/agent-bridge-clipboard/
 	cp commands/abc/*.toml $(DIST_DIR)/agent-bridge-clipboard/commands/abc/
 	cp gemini-extension.json $(DIST_DIR)/agent-bridge-clipboard/
@@ -39,8 +39,8 @@ build: clean
 		if [ -f skills/$$skill/SKILL.md ]; then cp skills/$$skill/SKILL.md $(DIST_DIR)/$$skill/; fi; \
 		cp scripts/copy.sh $(DIST_DIR)/$$skill/scripts/; \
 		chmod +x $(DIST_DIR)/$$skill/scripts/copy.sh; \
-		cp dist/abc-protocol.js $(DIST_DIR)/$$skill/scripts/; \
-		cp dist/send-clip.js $(DIST_DIR)/$$skill/scripts/; \
+		cp dist/scripts/abc-protocol.js $(DIST_DIR)/$$skill/scripts/; \
+		cp dist/scripts/send-clip.js $(DIST_DIR)/$$skill/scripts/; \
 	done
 
 	# 3. Build the Antigravity-specific plugin structure
@@ -52,8 +52,8 @@ build: clean
 	cp skills/antigravity-clipboard-bridge/plugin.json $(DIST_DIR)/antigravity-clipboard-bridge/
 	cp scripts/copy.sh $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
 	chmod +x $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/copy.sh
-	cp dist/abc-protocol.js $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
-	cp dist/send-clip.js $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
+	cp dist/scripts/abc-protocol.js $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
+	cp dist/scripts/send-clip.js $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
 
 # --- Testing & Verification ---
 

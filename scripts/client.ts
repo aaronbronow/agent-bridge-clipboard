@@ -2,6 +2,7 @@ import { WebSocket } from 'ws';
 import os from 'node:os';
 import { execSync, spawnSync } from 'node:child_process';
 import path from 'node:path';
+import fs from 'node:fs';
 import { createFrame, parseFrame, calculateHash, ABCFrame } from './abc-protocol.js';
 
 // Parse arguments
@@ -203,7 +204,7 @@ function handleServerFrame(frame: ABCFrame) {
     const incomingHash = hash || calculateHash(frame.C);
     if (incomingHash !== lastClipboardHash) {
       console.log(`[Remote Update] New clipboard received from ${frame.A.agent_id}@${frame.A.host}`);
-      applyRemoteClipboard(frame.C, incomingHash);
+      applyRemoteClipboard(frame.C, incomingHash, frame.A.agent_id, frame.A.host);
     }
     return;
   }
@@ -224,38 +225,22 @@ function handleServerFrame(frame: ABCFrame) {
   }
 }
 
-function applyRemoteClipboard(text: string, hash: string) {
+function applyRemoteClipboard(text: string, hash: string, fromAgent?: string, fromHost?: string) {
   lastClipboardHash = hash;
   lastClipboardText = text;
-  writeClipboard(text);
-}
-
-// Start local clipboard poll loop
-setInterval(() => {
-  if (!ws || ws.readyState !== WebSocket.OPEN) return;
-
-  const currentText = readClipboard();
-  if (currentText === lastClipboardText) return;
-
-  const currentHash = calculateHash(currentText);
-  if (currentHash === lastClipboardHash) {
-    // Just sync the local string cache, no need to send back what we just received
-    lastClipboardText = currentText;
-    return;
+  
+  try {
+    fs.writeFileSync('.bridge_clipboard_cache', text, 'utf8');
+    if (fromAgent && fromHost) {
+      console.log(`\n\x1b[35m[Bridge Update]\x1b[0m Clipboard updated by ${fromAgent}@${fromHost}.`);
+    } else {
+      console.log(`\n\x1b[35m[Bridge Update]\x1b[0m Initial bridge clipboard seeded.`);
+    }
+    console.log(`               Run 'abc accept' or './scripts/copy.sh --accept' to apply it to your clipboard.\n`);
+  } catch (err: any) {
+    console.error(`[Error] Failed to write bridge clipboard cache: ${err.message}`);
   }
-
-  // Local copy detected, update cache and sync to server
-  lastClipboardHash = currentHash;
-  lastClipboardText = currentText;
-
-  console.log(`[Local Update] Local clipboard change detected. Syncing...`);
-  const frame = createFrame(
-    { agent_id: agentId, host: os.hostname(), user: os.userInfo().username || 'user', role },
-    { event: 'clipboard_sync' },
-    currentText
-  );
-  ws.send(JSON.stringify(frame));
-}, 1500);
+}
 
 // Connect initially
 connect();

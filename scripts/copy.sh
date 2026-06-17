@@ -24,7 +24,15 @@ if [ -f "/.dockerenv" ] || grep -q "docker" /proc/self/cgroup 2>/dev/null; then
 fi
 
 # 0. Handle Input
-if [ $# -eq 0 ]; then
+if [ "$1" = "--accept" ]; then
+    if [ -f ".bridge_clipboard_cache" ]; then
+        input=$(cat .bridge_clipboard_cache)
+        log_debug "Accepted bridge clipboard value from cache"
+    else
+        echo "No bridge clipboard value available to accept."
+        exit 1
+    fi
+elif [ $# -eq 0 ]; then
     if [ -t 0 ]; then
         # Stdin is a TTY, no arguments provided - nothing to copy
         log_debug "No input provided and stdin is a TTY"
@@ -48,15 +56,11 @@ elif [ -n "$STY" ]; then
 fi
 
 # 0. Try WebSocket Sync (instantly synchronizes across all connected agents in the Bridge)
+# Only publish if we are NOT performing an accept operation
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ -f "$SCRIPT_DIR/send-clip.js" ]; then
-    log_debug "Attempting WebSocket sync via send-clip.js"
-    if node "$SCRIPT_DIR/send-clip.js" "$input" 2>>"$DEBUG_LOG"; then
-        log_debug "WebSocket sync succeeded"
-        exit 0
-    else
-        log_debug "WebSocket sync failed or broker unreachable"
-    fi
+if [ "$1" != "--accept" ] && [ -f "$SCRIPT_DIR/send-clip.js" ]; then
+    log_debug "Attempting WebSocket sync via send-clip.js in the background"
+    node "$SCRIPT_DIR/send-clip.js" "$input" 2>/dev/null &
 fi
 
 # 1. Primary: Platform-Native Tools (WSL/macOS/Linux)
