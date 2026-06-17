@@ -92,18 +92,21 @@ const wss = new WebSocketServer({ port: PORT });
 
 console.log(`[ABC Broker] Listening on ws://0.0.0.0:${PORT}`);
 
-wss.on('connection', async (ws, req) => {
+wss.on('connection', (ws, req) => {
   const remoteAddress = req.socket.remoteAddress || '127.0.0.1';
   const remotePort = req.socket.remotePort || 0;
 
   console.log(`[Connection] New connection request from ${remoteAddress}:${remotePort}`);
 
-  // Resolve client identity over Tailscale
-  const identity = await resolveIdentity(remoteAddress, remotePort);
-  console.log(`[Identity] Resolved node: "${identity.host}", user: "${identity.user}"`);
+  // Resolve client identity over Tailscale asynchronously (non-blocking)
+  const identityPromise = resolveIdentity(remoteAddress, remotePort).then((identity) => {
+    console.log(`[Identity] Resolved node: "${identity.host}", user: "${identity.user}"`);
+    return identity;
+  });
 
-  ws.on('message', (message: string) => {
+  ws.on('message', async (message: string) => {
     try {
+      const identity = await identityPromise;
       const frame = parseFrame(message.toString());
       handleFrame(ws, frame, identity);
     } catch (err: any) {
