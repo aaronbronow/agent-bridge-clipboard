@@ -1,6 +1,6 @@
 description = "Copy text to the host clipboard via OSC 52"
 prompt = """
 <task>The text has been sent to the host clipboard. Inform the user that the operation was successful:
-!{./scripts/copy.sh {{args}}}
+!{node ./scripts/copy.js {{args}} || bash ./scripts/copy.sh {{args}} || ./scripts/copy.sh {{args}}}
 </task>
 """

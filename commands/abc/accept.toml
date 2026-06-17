@@ -1,6 +1,6 @@
 description = "Accept the latest bridge clipboard value and apply it to the host clipboard"
 prompt = """
 <task>Accept the latest bridge clipboard value. Inform the user of success:
-!{./scripts/copy.sh --accept}
+!{node ./scripts/accept.js || bash ./scripts/copy.sh --accept || ./scripts/copy.sh --accept}
 </task>
 """
