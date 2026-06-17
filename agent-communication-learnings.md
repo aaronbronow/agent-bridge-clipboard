@@ -72,3 +72,20 @@ We can build a simple WebSocket server/client script that exchanges JSON frames:
     ```json
     { "type": "stream", "jobId": "123", "stream": "stdout", "text": "Scanning directory /Photos/..." }
     ```
+
+---
+
+## 🛠️ 3. Architectural Distinction: Persistent Host Client (`client.js`) vs. Agent Listener (`listen-once.js`)
+
+When integrating the WebSocket bridge with interactive agents running inside Antigravity/Gemini CLI, we maintain a strict separation between the host-level clipboard synchronization client and the agent-level message listener:
+
+### A. The Sandbox Boundary (Host vs. Guest Sandbox)
+*   **The Problem**: Codebase execution and agent shells often run in containerized sandboxes (e.g., Docker containers) or remote VM subshells.
+*   **The Constraint**: A process running inside a Docker sandbox or remote VM cannot directly interact with a physical host OS clipboard (e.g., Windows/macOS) because the clipboard APIs (`powershell.exe Set-Clipboard`, `clip.exe`, `pbcopy`) are unavailable inside the container/VM context.
+*   **The Solution**: The persistent clipboard synchronization client (`client.js`) **must** be executed natively on the user's host OS, outside the agent sandbox. Meanwhile, the one-shot listener (`listen-once.js`) runs inside the agent's subshell to handle agent-to-agent prompt routing and reactive wakeups.
+
+### B. Lifecycle Alignment & Orphaned Processes
+*   **The Problem**: If the agent attempts to spawn the long-running `client.js` in a background subshell using its `run_command` tool, the process lifecycle becomes tied to the agent's active subshell.
+*   **The Constraint**: If the agent session is terminated, closed, or restarted, the spawned client is either forcefully killed, or it becomes an orphaned process running in the background, locking ports and sockets, and preventing reconnects.
+*   **The Solution**: Users start `client.js` in a persistent terminal window on the host, ensuring it remains active across agent restarts. The agent only triggers short-lived, turn-based background listeners (`listen-once.js`) which automatically clean up and exit upon receiving a message.
+

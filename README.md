@@ -57,6 +57,11 @@ The broker runs as a containerized service. It leverages the local Tailscale soc
    node ./scripts/listen-once.js --agent-id="my-agent-id" --type="prompt"
    ```
 
+> [!NOTE]
+> **Sandbox Boundary & Lifecycle Distinction:**
+> * **Host Clipboard Client (`client.js`)**: Must run natively on the user's host OS (outside Docker sandboxes or remote VMs) to interface with the physical system clipboard APIs.
+> * **Agent Message Listener (`listen-once.js`)**: Runs inside the agent's execution subshell (guest VM/Docker sandbox) as a short-lived task to receive prompts and handle reactive turn wakeups.
+
 ### Disabling Network Sync
 To temporarily run `copy.sh` locally without background WebSocket publishing, set `ABC_DISABLE_SYNC=1` in your environment.
 
