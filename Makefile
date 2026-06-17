@@ -54,6 +54,8 @@ build: clean
 	chmod +x $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/copy.sh
 	cp dist/scripts/abc-protocol.js $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
 	cp dist/scripts/send-clip.js $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
+	cp dist/scripts/send-msg.js $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
+	cp dist/scripts/listen-once.js $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
 
 # --- Testing & Verification ---
 
