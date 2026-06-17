@@ -5,7 +5,7 @@ import path from 'node:path';
 import { createFrame } from './abc-protocol.js';
 
 const args = process.argv.slice(2);
-const text = args[0] || '';
+const text = args.find(a => !a.startsWith('--')) || '';
 
 if (!text) {
   process.exit(0);
@@ -13,6 +13,7 @@ if (!text) {
 
 const brokerUrl = process.env.ABC_BROKER || 'ws://localhost:4224';
 const agentId = process.env.ABC_AGENT_ID || `agent-${os.hostname()}-${process.pid}`;
+const role = (args.find(a => a.startsWith('--role='))?.split('=')[1] || process.env.ABC_ROLE || 'worker') as 'orchestrator' | 'worker';
 
 function deriveBridgeName(): string {
   if (process.env.ABC_BRIDGE) {
@@ -47,7 +48,7 @@ const timeout = setTimeout(() => {
 ws.on('open', () => {
   // Handshake
   const handshake = createFrame(
-    { agent_id: agentId, host: os.hostname(), user: os.userInfo().username || 'user', role: 'worker' },
+    { agent_id: agentId, host: os.hostname(), user: os.userInfo().username || 'user', role },
     { event: 'handshake', content: bridgeName },
     ''
   );
@@ -55,7 +56,7 @@ ws.on('open', () => {
 
   // Clipboard sync
   const syncFrame = createFrame(
-    { agent_id: agentId, host: os.hostname(), user: os.userInfo().username || 'user', role: 'worker' },
+    { agent_id: agentId, host: os.hostname(), user: os.userInfo().username || 'user', role },
     { event: 'clipboard_sync' },
     text
   );

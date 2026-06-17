@@ -60,7 +60,8 @@ fi
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 if [ "$1" != "--accept" ] && [ -f "$SCRIPT_DIR/send-clip.js" ]; then
     log_debug "Attempting WebSocket sync via send-clip.js in the background"
-    node "$SCRIPT_DIR/send-clip.js" "$input" 2>/dev/null &
+    role=${ABC_ROLE:-worker}
+    node "$SCRIPT_DIR/send-clip.js" "$input" --role="$role" 2>/dev/null &
 fi
 
 # 1. Primary: Platform-Native Tools (WSL/macOS/Linux)

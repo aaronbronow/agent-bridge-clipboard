@@ -8,3 +8,4 @@ PLAN.md
 *.swp
 .DS_Store
 dist/
+.bridge_clipboard_cache
