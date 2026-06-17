@@ -4,43 +4,33 @@ description: Copies text to the clipboard. Supports setting the user's clipboard
 ---
 
 # Instructions
-If the user asks to copy text to the clipboard, you should use the **Static Command Method** to avoid causing repetitive security permission prompts for the user:
+If the user asks to copy text to the clipboard, run the `copy.js` script with the text as an argument:
 
-1. **Write the content** to the file `~/.gemini/config/plugins/abc/pending_copy.txt` (resolve `~` to the user's home directory).
-2. **Execute the static command** using `run_command`:
-   ```bash
-   node ~/.gemini/config/plugins/abc/skills/copy/copy.js
-   ```
-   *(Since this command has no arguments, the user only has to approve/persist this command once, and it will be auto-allowed for all future copies).*
+```bash
+node ~/.gemini/config/plugins/abc/skills/copy/copy.js "the text to copy"
+```
 
-> [!NOTE]
-> **Fallback Method**: If needed, you can still run `node ~/.gemini/config/plugins/abc/skills/copy/copy.js "text to copy"`, but this will prompt the user to approve the specific text every time.
+> [!IMPORTANT]
+> **PREFIX ALLOWLIST COMPATIBILITY:** Always run this command directly on a single line. Do **NOT** chain it with semicolons, set variables, or use pipes at the start of the command (e.g. do not run `$text = "..."; node copy.js $text`). This ensures the command starts with the static prefix `node ~/.gemini/.../copy.js` so the user can easily whitelist the command prefix once.
+
+### Usage Steps:
+1. **Identify the Content**: Determine the exact text, code block, or command output to be copied.
+2. **Execute Command**: Run the command above using the `run_command` tool.
+3. **Escaping**: Properly escape any double quotes (`"`) or backticks (`` ` ``) in the text argument.
 
 ## Agent-to-Agent Communication Protocol
 When you need to send messages to other agents or wait for responses on the Tailscale WebSocket bridge (for multi-agent coordination or long-running dialogues):
 
 ### 1. Sending a Message to Another Agent
-To avoid dynamic CLI arguments that trigger repetitive permission approvals, use the **Static Message Method**:
+Use the `send-msg.js` script to send a message to a specific agent:
+```bash
+node ~/.gemini/config/plugins/abc/skills/copy/send-msg.js "Message content here" --recipient="surface95-agent" --type="prompt"
+```
+*   `--recipient`: Set to the target agent ID (e.g., `surface95-agent`), `"orchestrator"` to target the orchestrator, or omit/set to `"*"` for broadcast.
+*   `--type`: The type of message (`prompt`, `status`, `result`, or `abort`).
 
-1. **Write the message payload** as a JSON object to the file `~/.gemini/config/plugins/abc/pending_message.json` (resolve `~` to the user's home directory):
-   ```json
-   {
-     "content": "Message content here",
-     "recipient": "surface95-agent",
-     "type": "prompt"
-   }
-   ```
-   *   `recipient`: Set to the target agent ID (e.g., `surface95-agent`), `"orchestrator"` to target the orchestrator, or `"*"`/omit for broadcast.
-   *   `type`: The type of message (`prompt`, `status`, `result`, or `abort`).
-
-2. **Execute the static command** using `run_command`:
-   ```bash
-   node ~/.gemini/config/plugins/abc/skills/copy/send-msg.js
-   ```
-   *(Since this command has no arguments, the user only has to approve/persist this command once).*
-
-> [!NOTE]
-> **Fallback Method**: You can still run `node ~/.gemini/config/plugins/abc/skills/copy/send-msg.js "Message content" --recipient="surface95-agent" --type="prompt"`, but it will prompt the user to approve the specific message string.
+> [!IMPORTANT]
+> **PREFIX ALLOWLIST COMPATIBILITY:** Always execute the `send-msg.js` script directly as a single command starting with `node`. Do **NOT** chain commands with semicolons, set variables, or pipe input at the start. Running it directly allows the CLI to match the static prefix (`node ~/.gemini/.../send-msg.js`) so the user can whitelist it permanently.
 
 ### 2. Awaiting a Response (Listen Once)
 To wait for a response without polling, run the `listen-once.js` script as a background task. Since it is run in the background, when it receives a message it will print it to stdout and exit. This will trigger a reactive wakeup in the Antigravity CLI and deliver the message directly to your context.
