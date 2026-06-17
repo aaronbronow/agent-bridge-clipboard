@@ -41,7 +41,7 @@ if (!content) {
 
 const role = (args.find(a => a.startsWith('--role='))?.split('=')[1] || process.env.ABC_ROLE || config.role || 'worker') as 'orchestrator' | 'worker';
 const brokerUrl = process.env.ABC_BROKER || config.broker || 'ws://localhost:4224';
-const agentId = process.env.ABC_AGENT_ID || config.agentId || `agent-${os.hostname()}-${process.pid}`;
+const agentId = (process.env.ABC_AGENT_ID || config.agentId || `agent-${os.hostname()}-${process.pid}`) + '-sender';
 
 function deriveBridgeName(): string {
   if (process.env.ABC_BRIDGE) {
