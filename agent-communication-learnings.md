@@ -89,3 +89,19 @@ When integrating the WebSocket bridge with interactive agents running inside Ant
 *   **The Constraint**: If the agent session is terminated, closed, or restarted, the spawned client is either forcefully killed, or it becomes an orphaned process running in the background, locking ports and sockets, and preventing reconnects.
 *   **The Solution**: Users start `client.js` in a persistent terminal window on the host, ensuring it remains active across agent restarts. The agent only triggers short-lived, turn-based background listeners (`listen-once.js`) which automatically clean up and exit upon receiving a message.
 
+---
+
+## 🤝 4. Zero-Trust Routing & Session Takeover Learnings (E2E Bridge Validation)
+
+During live E2E coordination tests between `ubuntu-agent` (orchestrator on guest VM) and `surface95-agent` (worker on host Windows/PowerShell), we resolved critical routing issues relating to identity verification and session conflicts:
+
+### A. Routing Targets with Host Specifiers (`agent_id@host`)
+*   **The Issue**: Under the broker's zero-trust model, the sender's host context is overwritten with the verified connection hostname (e.g. `localhost` or `surface95`). When `surface95-agent` received a message, it registered the sender as `ubuntu-agent@localhost`. When it sent its reply back, it targeted `--recipient=ubuntu-agent@localhost`. The broker's router matched purely on the raw `agent_id`, failing to find the target.
+*   **The Solution**: We updated the routing engine in the WebSocket broker to detect the `@` character in the recipient field. If present, it splits the target into `agent_id` and `host` and verifies that the candidate session matches both the registered `agent_id` and the zero-trust verified `verifiedHost`. If no `@` is present, it falls back to matching by `agent_id` only.
+
+### B. Transient Sender Session Conflicts
+*   **The Issue**: When short-lived scripts like `send-msg.ts` or `send-clip.ts` connect to dispatch a message, they handshake with the same `agent_id` as the active background listener. This triggered the broker's **Session Takeover** protection, evicting the persistent listener.
+*   **The Solution**: We introduced a `transient` flag in the `AgentContext` interface. Transient senders pass `transient: true` during handshake, instructing the broker to bypass the session eviction/takeover process for that connection.
+
+
+

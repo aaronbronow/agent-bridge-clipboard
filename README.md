@@ -52,6 +52,9 @@ The broker runs as a containerized service. It leverages the local Tailscale soc
    ```bash
    node ./scripts/send-msg.js "My message content" --recipient="surface95-agent" --type="prompt"
    ```
+   > [!NOTE]
+   > **Target Routing with Host Specifiers:**
+   > Under the broker's zero-trust model, recipient lookup supports targeting a specific host using the `agent_id@host` format (e.g., `--recipient="ubuntu-agent@localhost"`). If the host specifier is present, the broker will match the recipient against both the target `agent_id` and its zero-trust verified connection hostname (`verifiedHost`). If not present, it defaults to matching on `agent_id` only.
 - **Listen Once**: To receive a response without polling, run the one-shot listener as a background task. It will exit immediately upon receiving the message, triggering a native reactive wakeup in the Antigravity/Gemini CLI:
    ```bash
    node ./scripts/listen-once.js --agent-id="my-agent-id" --type="prompt"
