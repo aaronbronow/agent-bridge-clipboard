@@ -46,9 +46,8 @@ build: clean
 	# 3. Build the Antigravity-specific plugin structure
 	@echo "Preparing antigravity-clipboard-bridge..."
 	mkdir -p $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy
-	mkdir -p $(DIST_DIR)/antigravity-clipboard-bridge/skills/help
 	cp skills/antigravity-clipboard-bridge/copy/SKILL.md $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
-	cp skills/antigravity-clipboard-bridge/help/SKILL.md $(DIST_DIR)/antigravity-clipboard-bridge/skills/help/
+	cp skills/antigravity-clipboard-bridge/INSTRUCTIONS.md $(DIST_DIR)/antigravity-clipboard-bridge/
 	cp skills/antigravity-clipboard-bridge/plugin.json $(DIST_DIR)/antigravity-clipboard-bridge/
 	cp scripts/copy.sh $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/
 	chmod +x $(DIST_DIR)/antigravity-clipboard-bridge/skills/copy/copy.sh
@@ -108,9 +107,8 @@ deploy-sandbox:
 		cp gemini-extension.json $(SANDBOX_DIR)/; \
 	elif [ "$(TARGET_SKILL)" = "antigravity-clipboard-bridge" ]; then \
 		mkdir -p $(SANDBOX_DIR)/skills/copy; \
-		mkdir -p $(SANDBOX_DIR)/skills/help; \
 		cp skills/antigravity-clipboard-bridge/copy/SKILL.md $(SANDBOX_DIR)/skills/copy/; \
-		cp skills/antigravity-clipboard-bridge/help/SKILL.md $(SANDBOX_DIR)/skills/help/; \
+		cp skills/antigravity-clipboard-bridge/INSTRUCTIONS.md $(SANDBOX_DIR)/; \
 		cp skills/antigravity-clipboard-bridge/plugin.json $(SANDBOX_DIR)/; \
 		cp scripts/copy.sh $(SANDBOX_DIR)/skills/copy/; \
 		chmod +x $(SANDBOX_DIR)/skills/copy/copy.sh; \
