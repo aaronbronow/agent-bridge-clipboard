@@ -3,6 +3,7 @@ import os from 'node:os';
 import { spawn, spawnSync, execSync } from 'node:child_process';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { loadConfig } from './abc-protocol.js';
 
 // Resolve current directory of the script in ESM mode
 const __filename = fileURLToPath(import.meta.url);
@@ -14,6 +15,7 @@ function toBase64(text: string): string {
 }
 
 async function main() {
+  const config = loadConfig();
   const args = process.argv.slice(2);
   let input = '';
 
@@ -52,7 +54,7 @@ async function main() {
 
   // 2. Try WebSocket Sync (instantly synchronizes across all connected agents in the Bridge)
   const disableSync = process.env.ABC_DISABLE_SYNC === '1';
-  const role = process.env.ABC_ROLE || 'worker';
+  const role = process.env.ABC_ROLE || config.role || 'worker';
   
   const sendClipPath = path.join(__dirname, 'send-clip.js');
 

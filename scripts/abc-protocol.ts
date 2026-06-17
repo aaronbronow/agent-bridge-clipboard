@@ -1,6 +1,7 @@
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
+import os from 'node:os';
 import { fileURLToPath } from 'node:url';
 import { execSync } from 'node:child_process';
 
@@ -131,4 +132,21 @@ export function parseFrame(raw: string): ABCFrame {
   }
 
   return parsed as ABCFrame;
+}
+
+export interface ABCConfig {
+  broker?: string;
+  bridge?: string;
+  agentId?: string;
+  role?: 'orchestrator' | 'worker';
+}
+
+export function loadConfig(): ABCConfig {
+  try {
+    const configPath = path.join(os.homedir(), '.gemini', 'config', 'plugins', 'abc', 'config.json');
+    if (fs.existsSync(configPath)) {
+      return JSON.parse(fs.readFileSync(configPath, 'utf8'));
+    }
+  } catch {}
+  return {};
 }

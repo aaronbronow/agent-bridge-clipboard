@@ -2,18 +2,20 @@ import { WebSocket } from 'ws';
 import os from 'node:os';
 import { execSync } from 'node:child_process';
 import path from 'node:path';
-import { createFrame, parseFrame, ABCFrame } from './abc-protocol.js';
+import { createFrame, parseFrame, ABCFrame, loadConfig } from './abc-protocol.js';
 
 // Parse arguments
 const args = process.argv.slice(2);
-const brokerUrl = args.find(a => a.startsWith('--broker='))?.split('=')[1] || process.env.ABC_BROKER || 'ws://localhost:4224';
-const role = (args.find(a => a.startsWith('--role='))?.split('=')[1] || 'worker') as 'orchestrator' | 'worker';
-const agentId = args.find(a => a.startsWith('--agent-id='))?.split('=')[1] || `agent-${os.hostname()}-${process.pid}`;
+const config = loadConfig();
+
+const brokerUrl = args.find(a => a.startsWith('--broker='))?.split('=')[1] || process.env.ABC_BROKER || config.broker || 'ws://localhost:4224';
+const role = (args.find(a => a.startsWith('--role='))?.split('=')[1] || process.env.ABC_ROLE || config.role || 'worker') as 'orchestrator' | 'worker';
+const agentId = args.find(a => a.startsWith('--agent-id='))?.split('=')[1] || process.env.ABC_AGENT_ID || config.agentId || `agent-${os.hostname()}-${process.pid}`;
 const timeoutMs = parseInt(args.find(a => a.startsWith('--timeout='))?.split('=')[1] || '300000', 10); // 5 mins default
 const expectedType = args.find(a => a.startsWith('--type='))?.split('=')[1]; // Optional filter by message_type
 
 function deriveBridgeName(): string {
-  const explicitBridge = args.find(a => a.startsWith('--bridge='))?.split('=')[1];
+  const explicitBridge = args.find(a => a.startsWith('--bridge='))?.split('=')[1] || process.env.ABC_BRIDGE || config.bridge;
   if (explicitBridge) {
     return explicitBridge;
   }

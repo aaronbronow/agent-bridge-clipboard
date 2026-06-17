@@ -1,0 +1,6 @@
+description = "Configure the ABC plugin connection settings (broker, bridge, agent-id, role)"
+prompt = """
+<task>Configure the plugin connection settings. Inform the user:
+!{node ./skills/copy/config.js {{args}}}
+</task>
+"""
