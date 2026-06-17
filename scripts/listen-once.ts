@@ -37,6 +37,7 @@ function deriveBridgeName(): string {
 }
 
 const bridgeName = deriveBridgeName();
+let messageReceived = false;
 
 console.log(`[Listen Once] Initializing...`);
 console.log(`  Agent ID : ${agentId}`);
@@ -78,6 +79,7 @@ ws.on('message', (data: string) => {
       console.log(`Content:\n${content}`);
       console.log(`------------------------\n`);
 
+      messageReceived = true;
       clearTimeout(timer);
       ws.close();
       process.exit(0);
@@ -94,7 +96,12 @@ ws.on('message', (data: string) => {
 
 ws.on('close', () => {
   clearTimeout(timer);
-  process.exit(0);
+  if (!messageReceived) {
+    console.warn(`[Disconnected] Connection to the broker was closed before a message was received.`);
+    process.exit(1);
+  } else {
+    process.exit(0);
+  }
 });
 
 ws.on('error', (err) => {

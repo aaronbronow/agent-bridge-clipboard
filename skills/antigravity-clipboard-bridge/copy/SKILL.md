@@ -55,3 +55,7 @@ node ~/.gemini/config/plugins/abc/skills/copy/listen-once.js --agent-id="YOUR_AG
 *   `--timeout`: (Optional) timeout in milliseconds before exiting with an error (defaults to `300000` / 5 minutes).
 
 **Important**: After executing the background listener command, stop calling any more tools. The system will automatically wake you up when the listener receives a message and exits.
+
+> [!IMPORTANT]
+> **CONNECTION LOSS HANDLED:** If the background listener task exits with a warning or error indicating the connection was closed (e.g. containing `[Disconnected] Connection to the broker was closed before a message was received`), do **NOT** attempt to troubleshoot, read task logs, write connection scripts, or run network diagnostics. Simply inform the user that the connection to the broker was lost/closed and stop execution.
+

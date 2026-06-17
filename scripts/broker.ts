@@ -185,7 +185,9 @@ function handleHandshake(ws: WebSocket, frame: ABCFrame, verified: { host: strin
   const user = verified.user !== 'unverified-user' ? verified.user : frame.A.user;
 
   // Software Version Mismatch Validation
-  if (frame.A.version !== VERSION) {
+  const agentSemver = (frame.A.version || '').split('+')[0];
+  const brokerSemver = (VERSION || '').split('+')[0];
+  if (agentSemver !== brokerSemver) {
     console.warn(`[Warning] Version mismatch for Agent "${frame.A.agent_id}": Agent is running v${frame.A.version}, but Broker is running v${VERSION}`);
     sendSystemMessage(
       ws,
