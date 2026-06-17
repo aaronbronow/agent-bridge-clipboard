@@ -58,7 +58,7 @@ fi
 # 0. Try WebSocket Sync (instantly synchronizes across all connected agents in the Bridge)
 # Only publish if we are NOT performing an accept operation
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-if [ "$1" != "--accept" ] && [ -f "$SCRIPT_DIR/send-clip.js" ]; then
+if [ "$1" != "--accept" ] && [ -f "$SCRIPT_DIR/send-clip.js" ] && [ "$ABC_DISABLE_SYNC" != "1" ]; then
     log_debug "Attempting WebSocket sync via send-clip.js in the background"
     role=${ABC_ROLE:-worker}
     node "$SCRIPT_DIR/send-clip.js" "$input" --role="$role" 2>/dev/null &
