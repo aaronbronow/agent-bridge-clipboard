@@ -47,6 +47,18 @@ elif [ -n "$STY" ]; then
     osc52_sequence=$(printf "\eP%s\e\\" "$osc52_sequence")
 fi
 
+# 0. Try WebSocket Sync (instantly synchronizes across all connected agents in the Bridge)
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/send-clip.js" ]; then
+    log_debug "Attempting WebSocket sync via send-clip.js"
+    if node "$SCRIPT_DIR/send-clip.js" "$input" 2>>"$DEBUG_LOG"; then
+        log_debug "WebSocket sync succeeded"
+        exit 0
+    else
+        log_debug "WebSocket sync failed or broker unreachable"
+    fi
+fi
+
 # 1. Primary: Platform-Native Tools (WSL/macOS/Linux)
 # Only attempt native tools if NOT in a sandbox (usually lack host access)
 if [ "$IS_SANDBOX" = false ]; then

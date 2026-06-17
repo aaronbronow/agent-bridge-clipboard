@@ -1,0 +1,21 @@
+{
+  "name": "agent-bridge-clipboard",
+  "version": "1.0.3",
+  "description": "A hybrid clipboard skill for terminal-based agents, supporting SSH, WSL, and macOS via OSC 52.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc && make build",
+    "start:broker": "tsx scripts/broker.ts",
+    "start:client": "tsx scripts/client.ts",
+    "test": "npx tsc && node --test dist/tests/websocket-sync.test.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.1",
+    "@types/ws": "^8.5.13",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,89 @@
+import crypto from 'node:crypto';
+
+export interface AgentContext {
+  agent_id: string;
+  host: string;
+  user: string;
+  pid: number;
+  role: 'orchestrator' | 'worker';
+}
+
+export interface BridgePayload {
+  event: 'clipboard_sync' | 'handshake' | 'ping' | 'pong' | 'system_message' | 'agent_message' | 'agent_control';
+  recipient?: string | null; // "*", "orchestrator", <agent_id>, or null (default broadcast)
+  message_type?: 'prompt' | 'status' | 'result' | 'broadcast' | 'abort' | 'pause' | 'resume' | 'warning' | 'error';
+  content?: string;
+  timestamp: string;
+  uuid: string;
+  hash?: string; // hash of clipboard value C
+}
+
+export interface ABCFrame {
+  A: AgentContext;
+  B: BridgePayload;
+  C: string;
+}
+
+/**
+ * Calculates a SHA256 hash of the given string content.
+ */
+export function calculateHash(content: string): string {
+  return crypto.createHash('sha256').update(content || '').digest('hex');
+}
+
+/**
+ * Helper to construct an ABC frame.
+ */
+export function createFrame(
+  agentContext: Omit<AgentContext, 'pid'>,
+  payload: Omit<BridgePayload, 'timestamp' | 'uuid'>,
+  clipboardText: string
+): ABCFrame {
+  const hash = calculateHash(clipboardText);
+  return {
+    A: {
+      ...agentContext,
+      pid: process.pid,
+    },
+    B: {
+      ...payload,
+      timestamp: new Date().toISOString(),
+      uuid: crypto.randomUUID(),
+      hash: payload.event === 'clipboard_sync' ? hash : (payload.hash || hash),
+    },
+    C: clipboardText,
+  };
+}
+
+/**
+ * Parses and validates a raw string into an ABCFrame.
+ */
+export function parseFrame(raw: string): ABCFrame {
+  const parsed = JSON.parse(raw);
+  if (!parsed || typeof parsed !== 'object') {
+    throw new Error('Invalid frame: not an object');
+  }
+  if (!parsed.A || typeof parsed.A !== 'object') {
+    throw new Error("Invalid frame: missing or invalid context 'A'");
+  }
+  if (!parsed.B || typeof parsed.B !== 'object') {
+    throw new Error("Invalid frame: missing or invalid payload 'B'");
+  }
+  if (typeof parsed.C !== 'string') {
+    throw new Error("Invalid frame: missing or invalid clipboard text 'C'");
+  }
+
+  // Validate sub-properties of Context (A)
+  const { agent_id, host, user, role } = parsed.A;
+  if (typeof agent_id !== 'string' || typeof host !== 'string' || typeof user !== 'string' || typeof role !== 'string') {
+    throw new Error("Invalid frame context 'A': missing or invalid required fields");
+  }
+
+  // Validate sub-properties of Payload (B)
+  const { event } = parsed.B;
+  if (typeof event !== 'string') {
+    throw new Error("Invalid frame payload 'B': missing or invalid event type");
+  }
+
+  return parsed as ABCFrame;
+}
