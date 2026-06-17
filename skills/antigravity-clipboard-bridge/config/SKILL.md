@@ -6,7 +6,7 @@ description: Configure the ABC plugin connection settings (broker, bridge, agent
 # Instructions
 If the user asks to configure the bridge connection, change the broker URL, change their agent ID, or join a specific bridge, you must handle this conversationally and write the configuration file directly:
 
-1. **Ask for parameters**: Ask the user to select or provide values for the following connection settings (recommend defaults if you can derive them):
+1. **Ask for parameters**: Use the `ask_question` tool (interactive multiple-choice wizard) to prompt the user to select or write in the values for the following connection settings:
    - **Broker URL** (e.g., `ws://ubuntu-dev:4224`)
    - **Bridge Name** (e.g., `agent-bridge-clipboard-aaron`)
    - **Agent ID** (e.g., `surface95-agent`)
