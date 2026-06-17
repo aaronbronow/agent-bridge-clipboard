@@ -25,7 +25,14 @@ If the user asks to configure the bridge connection, change the broker URL, chan
    }
    ```
 
-4. **Confirm Success**: Tell the user that the configuration has been saved successfully to their plugin home directory, and that they can now start the background sync client:
-   ```bash
-   node ~/.gemini/config/plugins/abc/skills/copy/client.js
-   ```
+4. **Inform User and Start Background Listener**: 
+   - Inform the user that the configuration has been saved successfully to their plugin home directory.
+   - Instruct the user to start the background sync client on their host shell to begin clipboard sync:
+     ```bash
+     node ~/.gemini/config/plugins/abc/skills/copy/client.js
+     ```
+   - **Immediately start the listener in the background**: Run the background listener command using the `run_command` tool to spawn it in the background as a task. This prepares you to receive messages from other agents over the bridge session:
+     ```bash
+     node ~/.gemini/config/plugins/abc/skills/copy/listen-once.js --agent-id="<agent-id>" --timeout=86400000
+     ```
+     *(Substitute `<agent-id>` with the configured Agent ID. Using `--timeout=86400000` sets it to listen for 24 hours in the background).*
