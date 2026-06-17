@@ -96,6 +96,7 @@ fs.writeFileSync(path.join(agDist, 'package.json'), JSON.stringify(cleanPkgJson,
 copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'copy', 'SKILL.md'), path.join(agDist, 'skills', 'copy', 'SKILL.md'));
 copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'accept', 'SKILL.md'), path.join(agDist, 'skills', 'accept', 'SKILL.md'));
 copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'config', 'SKILL.md'), path.join(agDist, 'skills', 'config', 'SKILL.md'));
+copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'connect', 'SKILL.md'), path.join(agDist, 'skills', 'connect', 'SKILL.md'));
 copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'INSTRUCTIONS.md'), path.join(agDist, 'INSTRUCTIONS.md'));
 copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'plugin.json'), path.join(agDist, 'plugin.json'));
 
@@ -112,6 +113,7 @@ copyFile(path.join(distDir, 'scripts', 'client.js'), path.join(agDist, 'skills',
 copyFile(path.join(distDir, 'scripts', 'accept.js'), path.join(agDist, 'skills', 'copy', 'accept.js'));
 copyFile(path.join(distDir, 'scripts', 'copy.js'), path.join(agDist, 'skills', 'copy', 'copy.js'));
 copyFile(path.join(distDir, 'scripts', 'config.js'), path.join(agDist, 'skills', 'copy', 'config.js'));
+copyFile(path.join(distDir, 'scripts', 'connect.js'), path.join(agDist, 'skills', 'copy', 'connect.js'));
 
 // Copy Antigravity-specific commands
 const agCommandsSrc = path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'commands', 'abc');

@@ -1,0 +1,6 @@
+description = "Starts the background listener for the clipboard bridge if configured"
+prompt = """
+<task>Start the clipboard bridge listener in the background. Inform the user of success:
+!{node ./scripts/connect.js}
+</task>
+"""
