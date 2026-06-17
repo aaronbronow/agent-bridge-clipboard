@@ -2,20 +2,38 @@ import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { execSync } from 'node:child_process';
 
-// Resolve version from package.json
+// Resolve version from package.json and git commit SHA
 export let VERSION = '1.0.3';
 try {
   const __dirname = path.dirname(fileURLToPath(import.meta.url));
   let currentDir = __dirname;
+  let packageVersion = '1.0.3';
   for (let i = 0; i < 4; i++) {
     const pkgPath = path.join(currentDir, 'package.json');
     if (fs.existsSync(pkgPath)) {
       const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
-      VERSION = pkg.version;
+      packageVersion = pkg.version;
       break;
     }
     currentDir = path.dirname(currentDir);
+  }
+
+  // Retrieve git short commit SHA
+  let commitSha = '';
+  try {
+    commitSha = execSync('git rev-parse --short HEAD', {
+      cwd: __dirname,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore']
+    }).trim();
+  } catch {}
+
+  if (commitSha) {
+    VERSION = `${packageVersion}+${commitSha}`;
+  } else {
+    VERSION = packageVersion;
   }
 } catch {}
 
