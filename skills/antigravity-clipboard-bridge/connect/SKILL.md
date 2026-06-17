@@ -1,6 +1,6 @@
 ---
 name: connect
-description: Starts the background listener for the clipboard bridge so this agent is ready to receive sync messages.
+description: Starts the background listener for the clipboard bridge so this agent is ready to receive agent-to-agent messages and coordination prompts.
 ---
 
 # Instructions
@@ -17,4 +17,4 @@ If the user asks to connect, start listening, start the bridge, or initialize th
      ```
      *(Substitute `<agent-id>` with the configured Agent ID. Using `--timeout=86400000` sets it to listen for 24 hours in the background).*
    
-3. **Confirm Success**: Tell the user that the background clipboard listener is now active and ready to receive clipboard sync updates and agent-to-agent messages.
+3. **Confirm Success**: Tell the user that the background listener is now active and ready to receive agent-to-agent prompts and coordination messages (noting that OS-level clipboard synchronization is handled separately by client.js running on the host).
