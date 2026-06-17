@@ -12,7 +12,7 @@
     "prepare": "tsc && node dist/scripts/build.js",
     "start:broker": "tsx scripts/broker.ts",
     "start:client": "tsx scripts/client.ts",
-    "test": "npx tsc && node --test dist/tests/websocket-sync.test.js",
+    "test": "npx tsc && node --test dist/tests/websocket-sync.test.js dist/tests/orchestrator-worker.test.js",
     "install:plugin": "make install",
     "dev-install:plugin": "make dev-install"
   },
