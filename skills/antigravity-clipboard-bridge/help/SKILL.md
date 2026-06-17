@@ -13,8 +13,8 @@ Seamlessly copy text, code blocks, or command outputs from remote environments,
 SSH sessions, WSL, and Docker sandboxes to your local host clipboard.
 
 🚀 Quick Start
-*   Copy Text: Use '/clipboard:copy <text>' to copy any text to your local clipboard.
-*   Show Help: Use '/clipboard:help' to view this help guide.
+*   Copy Text: Use '/abc:copy <text>' to copy any text to your local clipboard.
+*   Show Help: Use '/abc:help' to view this help guide.
 
 ⚡ Features & Platform Support
 *   Supported OS/Shells: macOS, Windows (WSL & PowerShell), Linux
