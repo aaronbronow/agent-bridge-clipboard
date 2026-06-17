@@ -4,17 +4,28 @@ description: Configure the ABC plugin connection settings (broker, bridge, agent
 ---
 
 # Instructions
-If the user asks to configure the bridge connection, change the broker URL, change their agent ID, or join a specific bridge, run the command below with appropriate arguments:
+If the user asks to configure the bridge connection, change the broker URL, change their agent ID, or join a specific bridge, you must handle this conversationally and write the configuration file directly:
 
-```bash
-node ~/.gemini/config/plugins/abc/skills/copy/config.js --broker="ws://<broker-ip>:<port>" --bridge="<bridge-name>" --agent-id="<agent-id>" --role="worker|orchestrator"
-```
+1. **Ask for parameters**: Ask the user to select or provide values for the following connection settings (recommend defaults if you can derive them):
+   - **Broker URL** (e.g., `ws://ubuntu-dev:4224`)
+   - **Bridge Name** (e.g., `agent-bridge-clipboard-aaron`)
+   - **Agent ID** (e.g., `surface95-agent`)
+   - **Agent Role** (either `worker` or `orchestrator`, default: `worker`)
 
-> [!IMPORTANT]
-> **DIRECT EXECUTION:** You must immediately run this command using the `run_command` tool. Do NOT attempt to read the script, list directories, check file existence, or inspect the plugin structure beforehand.
+2. **Save Configuration Directly**: Once the user provides the parameters, write them directly to the `config.json` file in the plugin directory. **Do NOT run any shell/node commands to save it.**
+   - Target File Path: `~/.gemini/config/plugins/abc/config.json` (resolve `~` to the user's absolute home directory, e.g. `C:/Users/abron` or `/home/aaron`).
 
-### Arguments:
-*   `--broker`: The WebSocket URL of the broker.
-*   `--bridge`: The name of the bridge session.
-*   `--agent-id`: The unique ID of this agent.
-*   `--role`: Either `worker` or `orchestrator`.
+3. **File Format**: Write the configuration in JSON format:
+   ```json
+   {
+     "broker": "<broker-url>",
+     "bridge": "<bridge-name>",
+     "agentId": "<agent-id>",
+     "role": "<role>"
+   }
+   ```
+
+4. **Confirm Success**: Tell the user that the configuration has been saved successfully to their plugin home directory, and that they can now start the background sync client:
+   ```bash
+   node ~/.gemini/config/plugins/abc/skills/copy/client.js
+   ```
