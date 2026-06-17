@@ -14,7 +14,7 @@ if (!text) {
 }
 
 const brokerUrl = process.env.ABC_BROKER || config.broker || 'ws://localhost:4224';
-const agentId = (process.env.ABC_AGENT_ID || config.agentId || `agent-${os.hostname()}-${process.pid}`) + '-sender';
+const agentId = process.env.ABC_AGENT_ID || config.agentId || `agent-${os.hostname()}-${process.pid}`;
 const role = (args.find(a => a.startsWith('--role='))?.split('=')[1] || process.env.ABC_ROLE || config.role || 'worker') as 'orchestrator' | 'worker';
 
 function deriveBridgeName(): string {
@@ -53,7 +53,7 @@ const timeout = setTimeout(() => {
 ws.on('open', () => {
   // Handshake
   const handshake = createFrame(
-    { agent_id: agentId, host: os.hostname(), user: os.userInfo().username || 'user', role },
+    { agent_id: agentId, host: os.hostname(), user: os.userInfo().username || 'user', role, transient: true },
     { event: 'handshake', content: bridgeName },
     ''
   );

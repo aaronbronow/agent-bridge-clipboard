@@ -180,15 +180,18 @@ function handleHandshake(ws: WebSocket, frame: ABCFrame, verified: { host: strin
   const bridgeName = frame.B.content || 'default';
   const role = frame.A.role || 'worker';
 
-  // Session Takeover: Close any existing socket connection with the same agent ID on the same bridge
-  const existingAgentSession = Array.from(activeSessions.entries()).find(
-    ([_, s]) => s.bridgeName === bridgeName && s.context.agent_id === frame.A.agent_id
-  );
-  if (existingAgentSession) {
-    const [oldWs, oldSession] = existingAgentSession;
-    console.log(`[Takeover] Disconnecting existing session for Agent "${oldSession.context.agent_id}" on Bridge "${bridgeName}"`);
-    try { oldWs.close(); } catch {}
-    activeSessions.delete(oldWs);
+  // Session Takeover: Close any existing non-transient socket connection with the same agent ID on the same bridge
+  const isTransient = frame.A.transient === true;
+  if (!isTransient) {
+    const existingAgentSession = Array.from(activeSessions.entries()).find(
+      ([_, s]) => s.bridgeName === bridgeName && s.context.agent_id === frame.A.agent_id && !s.context.transient
+    );
+    if (existingAgentSession) {
+      const [oldWs, oldSession] = existingAgentSession;
+      console.log(`[Takeover] Disconnecting existing session for Agent "${oldSession.context.agent_id}" on Bridge "${bridgeName}"`);
+      try { oldWs.close(); } catch {}
+      activeSessions.delete(oldWs);
+    }
   }
   
   // Enforce zero-trust validation by checking/overwriting host & user

@@ -45,6 +45,7 @@ export interface AgentContext {
   pid: number;
   role: 'orchestrator' | 'worker';
   version: string;
+  transient?: boolean;
 }
 
 export interface BridgePayload {
