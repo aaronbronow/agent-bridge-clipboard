@@ -58,6 +58,15 @@ try {
     console.log(`Copying ${sourceDir} -> ${targetDir}...`);
     fs.cpSync(sourceDir, targetDir, { recursive: true });
     console.log('Files copied successfully!');
+    
+    console.log('Installing dependencies in target directory...');
+    try {
+      execSync('npm install --omit=dev', { cwd: targetDir, stdio: 'inherit' });
+      console.log('Dependencies installed successfully!');
+    } catch (err: any) {
+      console.warn(`Warning: Failed to install dependencies in ${targetDir}: ${err.message}`);
+      console.warn('You may need to manually run "npm install --omit=dev" in the plugin directory.');
+    }
   }
 } catch (err: any) {
   console.error(`Installation failed: ${err.message}`);

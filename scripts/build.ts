@@ -8,10 +8,19 @@ const repoRoot = path.resolve(__dirname, '..', '..');
 
 const distDir = path.join(repoRoot, 'dist');
 
-// Read version from gemini-extension.json
 const extensionJsonPath = path.join(repoRoot, 'gemini-extension.json');
 const extensionJson = JSON.parse(fs.readFileSync(extensionJsonPath, 'utf8'));
 const version = extensionJson.version;
+
+const pkgJsonPath = path.join(repoRoot, 'package.json');
+const pkgJson = JSON.parse(fs.readFileSync(pkgJsonPath, 'utf8'));
+const cleanPkgJson = {
+  name: pkgJson.name,
+  version: pkgJson.version,
+  description: pkgJson.description,
+  type: pkgJson.type,
+  dependencies: pkgJson.dependencies
+};
 
 console.log(`Building release v${version}...`);
 
@@ -27,7 +36,8 @@ function copyFile(src: string, dest: string) {
 console.log('Preparing agent-bridge-clipboard...');
 const mainDist = path.join(distDir, 'agent-bridge-clipboard');
 copyFile(path.join(repoRoot, 'SKILL.md'), path.join(mainDist, 'SKILL.md'));
-copyFile(path.join(repoRoot, 'package.json'), path.join(mainDist, 'package.json'));
+fs.mkdirSync(mainDist, { recursive: true });
+fs.writeFileSync(path.join(mainDist, 'package.json'), JSON.stringify(cleanPkgJson, null, 2));
 copyFile(path.join(repoRoot, 'gemini-extension.json'), path.join(mainDist, 'gemini-extension.json'));
 copyFile(path.join(repoRoot, 'LICENSE'), path.join(mainDist, 'LICENSE'));
 copyFile(path.join(repoRoot, 'GEMINI.md'), path.join(mainDist, 'GEMINI.md'));
@@ -81,6 +91,8 @@ for (const skill of skills) {
 // 3. Build the Antigravity-specific plugin structure
 console.log('Preparing antigravity-clipboard-bridge...');
 const agDist = path.join(distDir, 'antigravity-clipboard-bridge');
+fs.mkdirSync(agDist, { recursive: true });
+fs.writeFileSync(path.join(agDist, 'package.json'), JSON.stringify(cleanPkgJson, null, 2));
 copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'copy', 'SKILL.md'), path.join(agDist, 'skills', 'copy', 'SKILL.md'));
 copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'INSTRUCTIONS.md'), path.join(agDist, 'INSTRUCTIONS.md'));
 copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'plugin.json'), path.join(agDist, 'plugin.json'));
@@ -94,5 +106,6 @@ copyFile(path.join(distDir, 'scripts', 'abc-protocol.js'), path.join(agDist, 'sk
 copyFile(path.join(distDir, 'scripts', 'send-clip.js'), path.join(agDist, 'skills', 'copy', 'send-clip.js'));
 copyFile(path.join(distDir, 'scripts', 'send-msg.js'), path.join(agDist, 'skills', 'copy', 'send-msg.js'));
 copyFile(path.join(distDir, 'scripts', 'listen-once.js'), path.join(agDist, 'skills', 'copy', 'listen-once.js'));
+copyFile(path.join(distDir, 'scripts', 'client.js'), path.join(agDist, 'skills', 'copy', 'client.js'));
 
 console.log('Build completed successfully!');
