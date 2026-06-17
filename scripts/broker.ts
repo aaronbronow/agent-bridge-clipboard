@@ -1,7 +1,7 @@
 import { WebSocketServer, WebSocket } from 'ws';
 import http from 'node:http';
 import fs from 'node:fs';
-import { parseFrame, createFrame, ABCFrame, AgentContext } from './abc-protocol.js';
+import { parseFrame, createFrame, ABCFrame, AgentContext, VERSION } from './abc-protocol.js';
 
 const PORT = parseInt(process.env.ABC_PORT || '4224', 10);
 const TAILSCALE_SOCKET = '/var/run/tailscale/tailscaled.sock';
@@ -180,6 +180,16 @@ function handleHandshake(ws: WebSocket, frame: ABCFrame, verified: { host: strin
   // Enforce zero-trust validation by checking/overwriting host & user
   const host = verified.host !== 'unverified-node' ? verified.host : frame.A.host;
   const user = verified.user !== 'unverified-user' ? verified.user : frame.A.user;
+
+  // Software Version Mismatch Validation
+  if (frame.A.version !== VERSION) {
+    console.warn(`[Warning] Version mismatch for Agent "${frame.A.agent_id}": Agent is running v${frame.A.version}, but Broker is running v${VERSION}`);
+    sendSystemMessage(
+      ws,
+      'warning',
+      `Warning: Version mismatch. Your agent is running v${frame.A.version}, but the Broker is running v${VERSION}. Please align versions to prevent sync issues.`
+    );
+  }
 
   // Single Orchestrator Rule
   if (role === 'orchestrator') {

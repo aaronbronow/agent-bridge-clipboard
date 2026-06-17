@@ -133,6 +133,51 @@ test('E2E Broker and Client Sync Syncing', async (t) => {
     orch2.ws.close();
   });
 
+  await t.test('Version Mismatch Warning Trigger', async () => {
+    const ws = new WebSocket(`ws://localhost:${TEST_PORT}`);
+    const messages: ABCFrame[] = [];
+
+    await new Promise<void>((resolve) => {
+      ws.on('open', () => {
+        const handshake = {
+          A: {
+            agent_id: 'mismatched-agent',
+            host: 'localhost',
+            user: 'aaron',
+            pid: process.pid,
+            role: 'worker',
+            version: '1.0.0'
+          },
+          B: {
+            event: 'handshake',
+            timestamp: new Date().toISOString(),
+            uuid: 'some-uuid',
+            content: 'test-bridge'
+          },
+          C: ''
+        };
+        ws.send(JSON.stringify(handshake));
+        resolve();
+      });
+    });
+
+    await new Promise<void>((resolve) => {
+      ws.on('message', (data) => {
+        const frame = parseFrame(data.toString());
+        messages.push(frame);
+        if (frame.B.event === 'system_message') {
+          resolve();
+        }
+      });
+    });
+
+    const warnings = messages.filter(m => m.B.event === 'system_message' && m.B.message_type === 'warning');
+    assert.equal(warnings.length, 1, 'Mismatched version agent should receive a warning');
+    assert.match(warnings[0].B.content || '', /Version mismatch/);
+
+    ws.close();
+  });
+
   // Clean up broker
   brokerProcess.kill();
   await delay(500);

@@ -1,4 +1,23 @@
 import crypto from 'node:crypto';
+import fs from 'node:fs';
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+
+// Resolve version from package.json
+export let VERSION = '1.0.3';
+try {
+  const __dirname = path.dirname(fileURLToPath(import.meta.url));
+  let currentDir = __dirname;
+  for (let i = 0; i < 4; i++) {
+    const pkgPath = path.join(currentDir, 'package.json');
+    if (fs.existsSync(pkgPath)) {
+      const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+      VERSION = pkg.version;
+      break;
+    }
+    currentDir = path.dirname(currentDir);
+  }
+} catch {}
 
 export interface AgentContext {
   agent_id: string;
@@ -6,6 +25,7 @@ export interface AgentContext {
   user: string;
   pid: number;
   role: 'orchestrator' | 'worker';
+  version: string;
 }
 
 export interface BridgePayload {
@@ -35,7 +55,7 @@ export function calculateHash(content: string): string {
  * Helper to construct an ABC frame.
  */
 export function createFrame(
-  agentContext: Omit<AgentContext, 'pid'>,
+  agentContext: Omit<AgentContext, 'pid' | 'version'>,
   payload: Omit<BridgePayload, 'timestamp' | 'uuid'>,
   clipboardText: string
 ): ABCFrame {
@@ -44,6 +64,7 @@ export function createFrame(
     A: {
       ...agentContext,
       pid: process.pid,
+      version: VERSION,
     },
     B: {
       ...payload,
@@ -74,8 +95,14 @@ export function parseFrame(raw: string): ABCFrame {
   }
 
   // Validate sub-properties of Context (A)
-  const { agent_id, host, user, role } = parsed.A;
-  if (typeof agent_id !== 'string' || typeof host !== 'string' || typeof user !== 'string' || typeof role !== 'string') {
+  const { agent_id, host, user, role, version } = parsed.A;
+  if (
+    typeof agent_id !== 'string' ||
+    typeof host !== 'string' ||
+    typeof user !== 'string' ||
+    typeof role !== 'string' ||
+    typeof version !== 'string'
+  ) {
     throw new Error("Invalid frame context 'A': missing or invalid required fields");
   }
 

@@ -3,6 +3,7 @@
   "version": "1.0.3",
   "description": "A hybrid clipboard skill for terminal-based agents, supporting SSH, WSL, and macOS via OSC 52.",
   "main": "dist/index.js",
+  "type": "module",
   "scripts": {
     "build": "tsc && make build",
     "start:broker": "tsx scripts/broker.ts",
