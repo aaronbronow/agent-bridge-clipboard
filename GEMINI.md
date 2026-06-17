@@ -15,6 +15,9 @@ The current architecture is the result of several key learnings:
 - **Hybrid Distribution Philosophy**:
     - **End Users**: Get a clean, installable extension in `dist/agent-bridge-clipboard/`.
     - **Downstream Developers**: Get modular, logic-only skills in `dist/*-clipboard-bridge/` that they can link into their own manifests.
+    - **Tiered Plugin Installation Strategy**:
+        - **Combined Flagship Plugin (`agent-bridge-clipboard`)**: Serves as the comprehensive tier. Designed for users who want both local clipboard integration and multi-agent synchronization/messaging over the ABC protocol. It groups the copy script, background client, broker, and agent-to-agent messaging together.
+        - **Discrete Standalone Skills (e.g., `gemini-clipboard-bridge`)**: Expose only the core local clipboard copying functionality (`copy.sh`) with zero network dependencies or background daemons. Useful for downstream developers or users who only want simple copy-to-clipboard capabilities.
 - **Universal Logic**: Centralizing `copy.sh` at the root ensures that bug fixes and transport improvements propagate to all agent bridges (Gemini, Claude, Copilot) simultaneously.
 - **Portable Relative Paths**: All commands and manifests use `./scripts/copy.sh`. This path is stable across source, standalone installation, and downstream linking.
 
