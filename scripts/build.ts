@@ -94,6 +94,8 @@ const agDist = path.join(distDir, 'antigravity-clipboard-bridge');
 fs.mkdirSync(agDist, { recursive: true });
 fs.writeFileSync(path.join(agDist, 'package.json'), JSON.stringify(cleanPkgJson, null, 2));
 copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'copy', 'SKILL.md'), path.join(agDist, 'skills', 'copy', 'SKILL.md'));
+copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'accept', 'SKILL.md'), path.join(agDist, 'skills', 'accept', 'SKILL.md'));
+copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'config', 'SKILL.md'), path.join(agDist, 'skills', 'config', 'SKILL.md'));
 copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'INSTRUCTIONS.md'), path.join(agDist, 'INSTRUCTIONS.md'));
 copyFile(path.join(repoRoot, 'skills', 'antigravity-clipboard-bridge', 'plugin.json'), path.join(agDist, 'plugin.json'));
 
