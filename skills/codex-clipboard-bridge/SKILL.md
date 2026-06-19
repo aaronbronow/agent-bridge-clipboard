@@ -50,3 +50,5 @@ If executing the helper script fails, execute the native platform command:
 
 ### Step 3: Verify and Confirm
 After performing the copy, confirm to the user with a single sentence stating that the text was copied successfully, specifying the exact transport used (e.g., "via SSH TTY (OSC 52)", "via clip.exe").
+
+If the transport used was the sandbox bypass file (i.e. `.clipboard_bypass`), notify the user that they must run `tail -F .clipboard_bypass > $(tty)` in another terminal on their host machine to stream the escape sequences and complete the copy operation.
