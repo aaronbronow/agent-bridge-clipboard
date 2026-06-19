@@ -128,6 +128,10 @@ In environments where host virtualization interop is completely blocked, we iden
 2.  **WebSocket Network Sync (Zero-Trust/Tailscale)**: Starting the ABC persistent client (`client.ts`) natively on the host OS to automatically sync clipboard frames published by the container in the background over network sockets.
 3.  **Local Socket/Port Forwarding**: Setting up a lightweight TCP socket listener on the host (`nc -l -p 4224 | clip.exe`) and executing `curl` or `nc` from the container sandbox to push text to the host port.
 
+### D. Multiplexer Escape Sequence Leakage (Ptmux;)
+*   **The Issue**: Under Tmux/GNU Screen, escape sequences for OSC 52 require multiplexer passthrough wrapping (e.g. starting with `\ePtmux;`). When executing in sandboxed environments where standard output is captured by the agent runner and rendered in log files/markdown formatting, control characters (like `\e` or `\x1b`) are often stripped. This leaves raw alphabetical fragments like `Ptmux;` printed in the console logs.
+*   **The Solution**: We implemented an early exit immediately after successfully writing to a sandbox bypass channel (like `.clipboard_bypass` or `.clipboard_pipe`). By exiting early upon bypass success, the script avoids falling through to direct TTY or standard output writes, completely eliminating terminal log pollution under multiplexer environments.
+
 
 
 
