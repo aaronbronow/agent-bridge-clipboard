@@ -69,7 +69,7 @@ if (fs.existsSync(commandsDir)) {
 }
 
 // 2. Build other discrete bridges
-const skills = ['gemini-clipboard-bridge', 'claude-clipboard-bridge', 'copilot-clipboard-bridge'];
+const skills = ['gemini-clipboard-bridge', 'claude-clipboard-bridge', 'copilot-clipboard-bridge', 'codex-clipboard-bridge'];
 for (const skill of skills) {
   console.log(`Preparing ${skill}...`);
   const skillDist = path.join(distDir, skill);

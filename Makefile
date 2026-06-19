@@ -3,7 +3,7 @@
 VERSION ?= $(shell jq -r .version gemini-extension.json)
 DIST_DIR = dist
 
-SKILLS = gemini-clipboard-bridge claude-clipboard-bridge copilot-clipboard-bridge
+SKILLS = gemini-clipboard-bridge claude-clipboard-bridge copilot-clipboard-bridge codex-clipboard-bridge
 
 .PHONY: all build clean test release verify headless validate matrix-clear
 

@@ -72,37 +72,61 @@ if [ "$IS_SANDBOX" = false ]; then
         log_debug "Detected WSL/Microsoft environment"
         if command -v clip.exe >/dev/null; then
             log_debug "Found clip.exe, using it"
-            printf "%s" "$input" | clip.exe
-            exit 0
+            if printf "%s" "$input" | clip.exe 2>/dev/null; then
+                echo "Copied via clip.exe (WSL)" >&2
+                exit 0
+            else
+                log_debug "clip.exe failed, falling back"
+            fi
         elif command -v powershell.exe >/dev/null; then
             log_debug "Found powershell.exe, using it with UTF-8 encoding"
             # Set UTF8 encoding to prevent corruption of non-ASCII characters
-            printf "%s" "$input" | powershell.exe -NoProfile -NonInteractive -Command "[Console]::InputEncoding = [System.Text.Encoding]::UTF8; \$input | Set-Clipboard"
-            exit 0
+            if printf "%s" "$input" | powershell.exe -NoProfile -NonInteractive -Command "[Console]::InputEncoding = [System.Text.Encoding]::UTF8; \$input | Set-Clipboard" 2>/dev/null; then
+                echo "Copied via PowerShell (WSL → Windows)" >&2
+                exit 0
+            else
+                log_debug "powershell.exe failed, falling back"
+            fi
         fi
     fi
 
     # macOS
     if [[ "$OSTYPE" == "darwin"* ]] && command -v pbcopy >/dev/null; then
         log_debug "Detected macOS, using pbcopy"
-        printf "%s" "$input" | pbcopy
-        exit 0
+        if printf "%s" "$input" | pbcopy 2>/dev/null; then
+            echo "Copied via pbcopy (macOS)" >&2
+            exit 0
+        else
+            log_debug "pbcopy failed, falling back"
+        fi
     fi
 
     # Linux (Desktop)
     if [ -n "$DISPLAY" ] || [ -n "$WAYLAND_DISPLAY" ]; then
         if command -v wl-copy >/dev/null; then
             log_debug "Detected Wayland, using wl-copy"
-            printf "%s" "$input" | wl-copy
-            exit 0
+            if printf "%s" "$input" | wl-copy 2>/dev/null; then
+                echo "Copied via wl-copy (Wayland)" >&2
+                exit 0
+            else
+                log_debug "wl-copy failed, falling back"
+            fi
         elif command -v xclip >/dev/null; then
             log_debug "Detected X11, using xclip"
-            printf "%s" "$input" | xclip -selection clipboard
-            exit 0
+            if printf "%s" "$input" | xclip -selection clipboard 2>/dev/null; then
+                echo "Copied via xclip (X11)" >&2
+                exit 0
+            else
+                log_debug "xclip failed, falling back"
+            fi
         elif command -v xsel >/dev/null; then
             log_debug "Detected X11, using xsel"
-            printf "%s" "$input" | xsel --clipboard --input
-            exit 0
+            if printf "%s" "$input" | xsel --clipboard --input 2>/dev/null; then
+                echo "Copied via xsel (X11)" >&2
+                exit 0
+            else
+                log_debug "xsel failed, falling back"
+            fi
         fi
     fi
 fi
@@ -110,34 +134,55 @@ fi
 # 2. Secondary: Direct SSH TTY bypass (Reliable for remote background/subshells)
 if [ -n "$SSH_TTY" ] && [ -w "$SSH_TTY" ]; then
     log_debug "Writing OSC 52 to SSH_TTY: $SSH_TTY"
-    printf "%s" "$osc52_sequence" > "$SSH_TTY"
-    exit 0
+    if printf "%s" "$osc52_sequence" > "$SSH_TTY" 2>/dev/null; then
+        echo "Copied via SSH TTY (OSC 52)" >&2
+        exit 0
+    else
+        log_debug "Writing to SSH_TTY failed, falling back"
+    fi
 fi
 
 # 3. Bypass Channels (Mandatory for Sandbox, Fallback for Native)
 log_debug "Writing to sandbox bypass channels"
 
+BYPASS_SUCCESS=false
 # Write to a regular file using atomic move
 printf "%s" "$osc52_sequence" > .clipboard_bypass.tmp
-mv .clipboard_bypass.tmp .clipboard_bypass
-log_debug "Wrote to .clipboard_bypass"
+if mv .clipboard_bypass.tmp .clipboard_bypass 2>/dev/null; then
+    log_debug "Wrote to .clipboard_bypass"
+    echo "Copied via sandbox bypass file (.clipboard_bypass)" >&2
+    BYPASS_SUCCESS=true
+fi
 
 # Write to a FIFO if it exists
 if [ -p ".clipboard_pipe" ]; then
     log_debug "Writing to .clipboard_pipe"
-    printf "%s" "$osc52_sequence" > .clipboard_pipe &
+    if printf "%s" "$osc52_sequence" > .clipboard_pipe 2>/dev/null & then
+        log_debug "Wrote to .clipboard_pipe"
+        if [ "$BYPASS_SUCCESS" = false ]; then
+            echo "Copied via sandbox bypass pipe (.clipboard_pipe)" >&2
+            BYPASS_SUCCESS=true
+        fi
+    fi
 fi
 
 # 4. Direct TTY write (Secondary fallback)
 # In some sandboxes, /dev/tty is writable but isolated. 
 if [ -w "/dev/tty" ]; then
     log_debug "Writing OSC 52 to /dev/tty"
-    printf "%s" "$osc52_sequence" > /dev/tty
-    if [ "$IS_SANDBOX" = false ]; then
-        exit 0
+    if printf "%s" "$osc52_sequence" > /dev/tty 2>/dev/null; then
+        if [ "$IS_SANDBOX" = false ]; then
+            if [ "$BYPASS_SUCCESS" = false ]; then
+                echo "Copied via direct TTY (OSC 52)" >&2
+            fi
+            exit 0
+        fi
     fi
 fi
 
 # 5. Last Resort: Stdout
 log_debug "Writing OSC 52 to stdout"
 printf "%s" "$osc52_sequence"
+if [ "$IS_SANDBOX" = false ] && [ "$BYPASS_SUCCESS" = false ]; then
+    echo "Copied via stdout (OSC 52)" >&2
+fi
