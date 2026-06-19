@@ -103,5 +103,31 @@ During live E2E coordination tests between `ubuntu-agent` (orchestrator on guest
 *   **The Issue**: When short-lived scripts like `send-msg.ts` or `send-clip.ts` connect to dispatch a message, they handshake with the same `agent_id` as the active background listener. This triggered the broker's **Session Takeover** protection, evicting the persistent listener.
 *   **The Solution**: We introduced a `transient` flag in the `AgentContext` interface. Transient senders pass `transient: true` during handshake, instructing the broker to bypass the session eviction/takeover process for that connection.
 
+---
+
+## 🔒 5. Sandbox Clipboard Bypasses & WSL Virtualization Interop Learnings
+
+During E2E integration inside containerized sandboxes under WSL2 (such as Codex CLI execution containers), we resolved critical interop crash scenarios and redirection warnings:
+
+### A. WSL Interop Virtualization (vsock) Failure
+*   **The Issue**: Running a container sandbox inside WSL2 inherits the word `microsoft` in `/proc/version`. This triggers the copy utility's WSL host path. However, inside a containerized sandbox, running a Windows binary (like `clip.exe` or `powershell.exe`) fails with a virtual socket bind error:
+    `<3>WSL (78 - ) ERROR: UtilBindVsockAnyPort:309: socket failed 1`
+*   **The Solution**: We refactored all native platform tool calls (WSL interop, `pbcopy`, `wl-copy`, `xclip`, `xsel`) inside conditional bash blocks to test their success. If a native command fails (e.g., vsock socket error or missing graphical display authority), the script captures the failure, logs it, and gracefully continues down the pipeline to secondary fallback methods (like bypass files or network sync).
+
+### B. Redirection Order and Device Open Errors
+*   **The Issue**: When writing OSC 52 escape sequences to `/dev/tty` or a restricted file, using standard redirection order `> /dev/tty 2>/dev/null` fails to suppress shell-level warnings (e.g. `/dev/tty: No such device or address`). This occurs because the shell processes the stdout redirection first, and if that fails, aborts the command and writes the error to `stderr` before the `2>/dev/null` redirection has taken effect.
+*   **The Solution**: We reversed the redirection order so that `stderr` is redirected *before* stdout:
+    ```bash
+    printf "%s" "$osc52_sequence" 2>/dev/null > /dev/tty
+    ```
+    This successfully silences ENXIO and permission warnings inside headless and restricted sandboxes.
+
+### C. Container-to-Host Clipboard Sync Alternatives
+In environments where host virtualization interop is completely blocked, we identified three reliable paths to bridge copy actions back to the host clipboard:
+1.  **Shared Volume File Bypass (Low-Tech)**: Continuous file writing to `.clipboard_bypass`, matched with a host-side terminal listener `tail -F .clipboard_bypass > $(tty)`.
+2.  **WebSocket Network Sync (Zero-Trust/Tailscale)**: Starting the ABC persistent client (`client.ts`) natively on the host OS to automatically sync clipboard frames published by the container in the background over network sockets.
+3.  **Local Socket/Port Forwarding**: Setting up a lightweight TCP socket listener on the host (`nc -l -p 4224 | clip.exe`) and executing `curl` or `nc` from the container sandbox to push text to the host port.
+
+
 
 
