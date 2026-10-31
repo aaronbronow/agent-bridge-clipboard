@@ -35,7 +35,17 @@ if (!fs.existsSync(pluginsDir)) {
   fs.mkdirSync(pluginsDir, { recursive: true });
 }
 
-// 3. Remove existing installation
+// 3. Preserve existing user settings (config.json, inbox.jsonl) before removing old installation
+const preservedFiles: Record<string, string> = {};
+for (const filename of ['config.json', 'inbox.jsonl']) {
+  const filePath = path.join(targetDir, filename);
+  try {
+    if (fs.existsSync(filePath)) {
+      preservedFiles[filename] = fs.readFileSync(filePath, 'utf8');
+    }
+  } catch {}
+}
+
 try {
   // If it's a symlink (even broken), unlinkSync will remove it
   fs.unlinkSync(targetDir);
@@ -67,6 +77,14 @@ try {
       console.warn(`Warning: Failed to install dependencies in ${targetDir}: ${err.message}`);
       console.warn('You may need to manually run "npm install --omit=dev" in the plugin directory.');
     }
+  }
+
+  // Restore preserved user settings
+  for (const [filename, content] of Object.entries(preservedFiles)) {
+    try {
+      fs.writeFileSync(path.join(targetDir, filename), content, 'utf8');
+      console.log(`Preserved existing ${filename}`);
+    } catch {}
   }
 } catch (err: any) {
   console.error(`Installation failed: ${err.message}`);
