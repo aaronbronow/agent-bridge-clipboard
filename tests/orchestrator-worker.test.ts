@@ -182,28 +182,35 @@ test('Orchestrator and Worker E2E Routing and Control Suite', async (t) => {
     worker.ws.close();
   });
 
-  // 6. Routing Errors - Target Agent Not Found
-  await t.test('Error when routing to non-existent specific agent', async () => {
+  // 6. Routing Errors & Ephemeral Offline Mailbox - Target Agent Not Found -> Queued -> Delivered on Reconnect
+  await t.test('Queues message when target agent is offline and delivers on reconnect', async () => {
     const orchestrator = await connectClient('orchestrator-1', 'orchestrator');
 
     orchestrator.messages.length = 0;
 
-    // Orchestrator messages non-existent agent
+    // Orchestrator messages offline worker
     const msgFrame = createFrame(
       { agent_id: 'orchestrator-1', host: 'localhost', user: 'aaron', role: 'orchestrator' },
-      { event: 'agent_message', recipient: 'non-existent-worker', message_type: 'prompt', content: 'hello' },
+      { event: 'agent_message', recipient: 'offline-worker', message_type: 'prompt', content: 'queued hello' },
       ''
     );
     orchestrator.ws.send(JSON.stringify(msgFrame));
 
     await delay(300);
 
-    // Orchestrator should receive error system message
+    // Orchestrator should receive system message noting offline queue
     const errorMsgs = orchestrator.messages.filter(m => m.B.event === 'system_message' && m.B.message_type === 'error');
-    assert.equal(errorMsgs.length, 1, 'Should receive target not found error');
-    assert.match(errorMsgs[0].B.content || '', /Target agent "non-existent-worker" not found/);
+    assert.equal(errorMsgs.length, 1, 'Should receive target not found / queued warning');
+    assert.match(errorMsgs[0].B.content || '', /Target agent "offline-worker" not found/);
+
+    // Now offline-worker connects and should immediately receive the queued message upon handshake
+    const lateWorker = await connectClient('offline-worker', 'worker', 'windows-surface', 'win-user');
+    const deliveredMsgs = lateWorker.messages.filter(m => m.B.event === 'agent_message');
+    assert.equal(deliveredMsgs.length, 1, 'Late-connecting worker should receive queued message');
+    assert.equal(deliveredMsgs[0].B.content, 'queued hello');
 
     orchestrator.ws.close();
+    lateWorker.ws.close();
   });
 
   // Clean up broker
