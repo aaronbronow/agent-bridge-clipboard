@@ -2,6 +2,16 @@
 
 A universal clipboard synchronization bridge and testing suite for AI agents (Gemini, Claude, Copilot, etc.). This project provides the core transport logic and escape sequence protocols required to bridge isolated agent environments (Docker, SSH, WSL) with the host system clipboard.
 
+## ⚡ Quick Install & Update (Antigravity CLI / `agy`)
+
+To install or update the ABC plugin directly from GitHub (or when prompted in `agy` with *"install aaronbronow/agent-bridge-clipboard"*), run:
+
+```bash
+npx -y github:aaronbronow/agent-bridge-clipboard
+```
+
+*(Note: While developing on the `tailscale-ws` branch prior to merging to `main`, use `npx -y 'github:aaronbronow/agent-bridge-clipboard#tailscale-ws'`. Existing `~/.gemini/config/plugins/abc/config.json` and `inbox.jsonl` files are automatically preserved across updates.)*
+
 ## Architecture
 - **Upstream (`agent-bridge-clipboard`)**: This repository. Contains core transport protocols and provides agent-specific "raw skills" for downstream consumption.
 - **Standalone Extension**: This repository also serves as the primary source for the `agent-bridge-clipboard` Gemini CLI extension.

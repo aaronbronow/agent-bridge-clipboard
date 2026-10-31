@@ -5,6 +5,10 @@ import { parseFrame, createFrame, ABCFrame, AgentContext, VERSION } from './abc-
 
 const PORT = parseInt(process.env.ABC_PORT || '4224', 10);
 const TAILSCALE_SOCKET = '/var/run/tailscale/tailscaled.sock';
+const OFFLINE_QUEUE_TTL_MS = parseInt(process.env.ABC_QUEUE_TTL_MS || '600000', 10); // 10 minutes default
+const OFFLINE_QUEUE_MAX = 50;
+
+let tailscaleWhoisDisabled = process.env.ABC_TAILSCALE_WHOIS === 'false' || process.env.ABC_TAILSCALE_WHOIS === '0';
 
 interface ClientSession {
   socket: WebSocket;
@@ -14,11 +18,56 @@ interface ClientSession {
   verifiedUser: string;
 }
 
+interface QueuedMessage {
+  frame: ABCFrame;
+  queuedAt: number;
+}
+
 // Map of bridgeName -> last clipboard value C
 const bridgeClipboards = new Map<string, string>();
 
 // Map of socket -> ClientSession
 const activeSessions = new Map<WebSocket, ClientSession>();
+
+// Map of `${bridgeName}:${targetKey}` -> QueuedMessage[]
+const offlineQueues = new Map<string, QueuedMessage[]>();
+
+function enqueueOfflineMessage(bridgeName: string, targetKey: string, frame: ABCFrame): number {
+  const key = `${bridgeName}:${targetKey}`;
+  const now = Date.now();
+  const queue = (offlineQueues.get(key) || []).filter(item => now - item.queuedAt < OFFLINE_QUEUE_TTL_MS);
+  if (queue.length >= OFFLINE_QUEUE_MAX) {
+    queue.shift();
+  }
+  queue.push({ frame, queuedAt: now });
+  offlineQueues.set(key, queue);
+  return queue.length;
+}
+
+function flushOfflineQueue(session: ClientSession) {
+  const now = Date.now();
+  const candidateKeys = [
+    `${session.bridgeName}:${session.context.agent_id}`,
+    `${session.bridgeName}:${session.context.agent_id}@${session.verifiedHost}`,
+    ...(session.context.role === 'orchestrator' ? [`${session.bridgeName}:orchestrator`] : []),
+  ];
+
+  for (const key of candidateKeys) {
+    const queue = offlineQueues.get(key);
+    if (!queue || queue.length === 0) continue;
+    offlineQueues.delete(key);
+
+    const validMessages = queue.filter(item => now - item.queuedAt < OFFLINE_QUEUE_TTL_MS);
+    if (validMessages.length > 0) {
+      console.log(`[Offline Queue] Delivering ${validMessages.length} queued message(s) to "${session.context.agent_id}" on Bridge "${session.bridgeName}"`);
+      for (const item of validMessages) {
+        if (session.socket.readyState === WebSocket.OPEN) {
+          session.socket.send(JSON.stringify(item.frame));
+        }
+      }
+    }
+  }
+}
 
 /**
  * Queries the local Tailscale daemon Whois API for connection details.
@@ -74,13 +123,25 @@ async function resolveIdentity(remoteAddress: string, remotePort: number): Promi
     };
   }
 
+  if (tailscaleWhoisDisabled) {
+    return {
+      host: 'unverified-node',
+      user: 'unverified-user',
+    };
+  }
+
   try {
     const whois = await getTailscaleWhois(`${ip}:${remotePort}`);
     const host = whois?.Node?.Name ? whois.Node.Name.split('.')[0] : 'unknown-tailscale-node';
     const user = whois?.UserProfile?.LoginName || 'unknown-tailscale-user';
     return { host, user };
   } catch (error: any) {
-    console.warn(`[Whois Failed] Falling back to self-reported credentials. Reason: ${error.message}`);
+    if (error.message && (error.message.includes('status 403') || error.message.includes('socket not found') || error.message.includes('EACCES'))) {
+      tailscaleWhoisDisabled = true;
+      console.warn(`[Whois Disabled] Caching fallback to self-reported credentials for future connections. Reason: ${error.message.trim()}`);
+    } else {
+      console.warn(`[Whois Failed] Falling back to self-reported credentials. Reason: ${error.message}`);
+    }
     return {
       host: 'unverified-node',
       user: 'unverified-user',
@@ -248,6 +309,11 @@ function handleHandshake(ws: WebSocket, frame: ABCFrame, verified: { host: strin
     { event: 'system_message', message_type: 'status', content: 'Handshake complete' },
     lastClipboard
   )));
+
+  // Deliver any offline-queued messages if this is not a transient one-shot sender
+  if (!isTransient) {
+    flushOfflineQueue(session);
+  }
 }
 
 /**
@@ -285,18 +351,20 @@ function handleAgentRouting(session: ClientSession, frame: ABCFrame) {
   } else if (recipient === 'orchestrator') {
     // Route to orchestrator
     const orchestrator = Array.from(activeSessions.values()).find(
-      s => s.bridgeName === session.bridgeName && s.context.role === 'orchestrator'
+      s => s.bridgeName === session.bridgeName && s.context.role === 'orchestrator' && !s.context.transient
     );
     if (orchestrator) {
       orchestrator.socket.send(JSON.stringify(frame));
     } else {
-      sendSystemMessage(session.socket, 'error', 'No active orchestrator on this bridge');
+      const queuedCount = enqueueOfflineMessage(session.bridgeName, 'orchestrator', frame);
+      console.warn(`[Offline Queue] No active orchestrator on Bridge "${session.bridgeName}" (queued ${queuedCount} message(s))`);
+      sendSystemMessage(session.socket, 'error', `No active orchestrator on this bridge (queued in offline mailbox, TTL ${Math.round(OFFLINE_QUEUE_TTL_MS / 60000)}m)`);
     }
   } else {
     // Route to specific agent ID
     const target = Array.from(activeSessions.values()).find(
       s => {
-        if (s.bridgeName !== session.bridgeName) return false;
+        if (s.bridgeName !== session.bridgeName || s.context.transient) return false;
         if (recipient.includes('@')) {
           const [targetId, targetHost] = recipient.split('@');
           return s.context.agent_id === targetId && s.verifiedHost === targetHost;
@@ -307,8 +375,9 @@ function handleAgentRouting(session: ClientSession, frame: ABCFrame) {
     if (target) {
       target.socket.send(JSON.stringify(frame));
     } else {
-      console.warn(`[Routing Failed] Target agent "${recipient}" not found on Bridge "${session.bridgeName}"`);
-      sendSystemMessage(session.socket, 'error', `Target agent "${recipient}" not found on this bridge`);
+      const queuedCount = enqueueOfflineMessage(session.bridgeName, recipient, frame);
+      console.warn(`[Routing Failed / Queued] Target agent "${recipient}" not found on Bridge "${session.bridgeName}" (queued ${queuedCount} message(s))`);
+      sendSystemMessage(session.socket, 'error', `Target agent "${recipient}" not found on this bridge (queued in offline mailbox, TTL ${Math.round(OFFLINE_QUEUE_TTL_MS / 60000)}m)`);
     }
   }
 }
